@@ -9,12 +9,11 @@
     "MAX_MCP_OUTPUT_TOKENS": "50000",
     "BASH_DEFAULT_TIMEOUT_MS": "300000",
     "BASH_MAX_TIMEOUT_MS": "600000",
-    "GIT_AUTHOR_NAME": "Claude Code",
-    "GIT_COMMITTER_NAME": "Claude Code",
-    "GIT_AUTHOR_EMAIL": "flosrn@users.noreply.github.com",
-    "GIT_COMMITTER_EMAIL": "flosrn@users.noreply.github.com",
-    "ALLOW_GIT_COMMIT": "1",
-    "RIPGREP_CONFIG_PATH": "/Users/flo/.config/ripgrep/.emptyripgreprc"
+    "GIT_AUTHOR_NAME": "Rousselin thomas",
+    "GIT_COMMITTER_NAME": "Rousselin thomas",
+    "GIT_AUTHOR_EMAIL": "devattom@gmail.com",
+    "GIT_COMMITTER_EMAIL": "devattom@gmail.com",
+    "ALLOW_GIT_COMMIT": "1"
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -128,5 +127,6 @@
   },
   "spinnerTipsEnabled": false,
   "alwaysThinkingEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "effortLevel": "medium"
 }
