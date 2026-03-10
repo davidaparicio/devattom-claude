@@ -5,52 +5,45 @@
     "MAX_THINKING_TOKENS": "31999",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "90",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_EFFORT_LEVEL": "high",
     "MAX_MCP_OUTPUT_TOKENS": "50000",
-    "BASH_DEFAULT_TIMEOUT_MS": "300000",
-    "BASH_MAX_TIMEOUT_MS": "600000",
     "GIT_AUTHOR_NAME": "Rousselin thomas",
     "GIT_COMMITTER_NAME": "Rousselin thomas",
     "GIT_AUTHOR_EMAIL": "devattom@gmail.com",
-    "GIT_COMMITTER_EMAIL": "devattom@gmail.com",
-    "ALLOW_GIT_COMMIT": "1"
+    "GIT_COMMITTER_EMAIL": "devattom@gmail.com"
   },
-  "includeCoAuthoredBy": false,
   "permissions": {
-    "allow": [
-      "Bash(npm run :*)",
-      "Bash(git :*)",
-      "Bash(pnpm :*)",
-      "Bash(gh :*)",
-      "Bash(cd :*)",
-      "Bash(ls :*)",
-      "Bash(node :*)",
-      "Bash(pnpm:*)",
-      "Bash(gh:*)",
-      "Edit",
-      "Bash(ls:*)",
-      "Bash(git:*)",
-      "mcp__context7",
-      "mcp__exa",
-      "Bash(claude mcp add:*)",
-      "Bash(pnpm ts:*)",
-      "Bash(mkdir:*)",
-      "WebFetch(domain:upstash.com)",
-      "Bash(npx prisma migrate dev:*)",
-      "Bash(pnpm run:*)",
-      "Bash(pnpm test:*)",
-      "Bash(rm:*)",
-      "Bash(claude mcp:*)",
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs",
-      "Bash(pnpm lint:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_take_screenshot",
-      "mcp__exa__get_code_context_exa"
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(su :*)",
+      "Bash(shutdown:*)",
+      "Bash(reboot:*)",
+      "Bash(poweroff:*)",
+      "Bash(halt:*)",
+      "Bash(systemctl :*)",
+      "Bash(service :*)",
+      "Bash(mount :*)",
+      "Bash(umount :*)",
+      "Bash(mkfs:*)",
+      "Bash(fdisk:*)",
+      "Bash(dd :*)",
+      "Bash(parted:*)",
+      "Bash(iptables :*)",
+      "Bash(ufw :*)",
+      "Bash(chmod 777:*)",
+      "Bash(chown :*)",
+      "Bash(apt :*)",
+      "Bash(apt-get :*)",
+      "Bash(dpkg :*)",
+      "Bash(snap :*)",
+      "Bash(npm install -g:*)",
+      "Bash(npm i -g:*)",
+      "Bash(pnpm add -g:*)",
+      "Bash(yarn global :*)",
+      "Bash(eval :*)",
+      "Bash(killall :*)",
+      "Bash(pkill :*)",
+      "Bash(kill -9 :*)"
     ],
-    "deny": [],
     "defaultMode": "bypassPermissions"
   },
   "model": "opus",
@@ -111,22 +104,47 @@
       }
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "$HOME/.claude/bin/run-hook statusline/src/index.ts",
-    "padding": 0
-  },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
-    "plugin-dev@claude-plugins-official": true,
-    "marketing-skills@marketingskills": false,
-    "superpowers@claude-plugins-official": false
+    "plugin-dev@claude-plugins-official": true
   },
-  "spinnerTipsEnabled": false,
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "registry.npmjs.org",
+        "upstash.com",
+        "pypi.org"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "//tmp",
+        "."
+      ],
+      "denyRead": [
+        "~/.ssh",
+        "~/.gnupg",
+        "~/.aws",
+        "~/.config/gcloud",
+        "~/.docker/config.json",
+        "~/.netrc",
+        "~/.npmrc"
+      ]
+    }
+  },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
-  "effortLevel": "medium"
+  "statusLine": {
+    "type": "command",
+    "command": "node --experimental-strip-types $HOME/.claude/scripts/statusline.ts"
+  }
 }

@@ -21,8 +21,20 @@ tool-usage.log
 *.backup/
 *.backup
 
+# IDE
+.idea/
+
+# Plugin marketplaces (cloned repos)
+plugins/marketplaces/
+
+# Coverage files
+.coverage
+
 # OS files
 .DS_Store
+
+# Local backups
+backups/
 
 # Sensitive
 credentials.json

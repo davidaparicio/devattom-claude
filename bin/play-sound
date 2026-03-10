@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# play-sound — Cross-platform sound player (macOS, Linux, WSL2)
+#
+# Usage: play-sound <file> [volume]
+#   file:   path to audio file (mp3, wav, aiff, etc.)
+#   volume: 0.0 to 1.0 (default: 0.1)
+#
+# Platforms:
+#   macOS:  afplay (built-in)
+#   WSL2:   powershell.exe MediaPlayer (uses Windows audio)
+#   Linux:  sox/play (apt install sox libsox-fmt-mp3)
+
+set -euo pipefail
+
+SOUND_FILE="${1:-}"
+VOLUME="${2:-0.1}"
+
+if [[ -z "$SOUND_FILE" ]]; then
+    echo "Usage: play-sound <file> [volume]" >&2
+    exit 1
+fi
+
+if [[ ! -f "$SOUND_FILE" ]]; then
+    exit 0
+fi
+
+OS="$(uname -s)"
+
+if [[ "$OS" == "Darwin" ]]; then
+    afplay -v "$VOLUME" "$SOUND_FILE" &
+
+elif grep -qi microsoft /proc/version 2>/dev/null; then
+    # WSL2 — play via PowerShell MediaPlayer (no visible window)
+    WIN_PATH="$(wslpath -w "$SOUND_FILE")"
+    nohup powershell.exe -NoProfile -NonInteractive -Command "
+        Add-Type -AssemblyName PresentationCore;
+        \$p = New-Object System.Windows.Media.MediaPlayer;
+        \$p.Open([Uri]'$WIN_PATH');
+        \$p.Volume = $VOLUME;
+        Start-Sleep -Milliseconds 500;
+        \$p.Play();
+        Start-Sleep -Seconds 5;
+        \$p.Close()
+    " &>/dev/null &
+
+elif command -v play &>/dev/null; then
+    # sox's play command
+    play -q "$SOUND_FILE" vol "$VOLUME" &
+
+else
+    exit 0
+fi

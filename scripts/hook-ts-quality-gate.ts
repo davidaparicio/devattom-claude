@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 interface HookInput {
   session_id: string;
@@ -35,31 +35,29 @@ interface LogEntry {
   errors?: string[];
 }
 
+import { execFileSync } from "node:child_process";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { existsSync } from "node:fs";
 
 // Check for debug mode
 const DEBUG = process.env.CLAUDE_HOOK_DEBUG === "1";
-const LOG_FILE = "/Users/flo/.claude/tool-usage.log";
+const LOG_FILE = join(homedir(), ".claude/tool-usage.log");
 
 // Find project root by looking for package.json or pnpm-workspace.yaml
-async function findProjectRoot(filePath: string): Promise<string | null> {
+function findProjectRoot(filePath: string): string | null {
   let dir = dirname(filePath);
   const root = "/";
 
   while (dir !== root) {
-    // Check for pnpm-workspace.yaml (monorepo root)
-    const pnpmWorkspace = Bun.file(join(dir, "pnpm-workspace.yaml"));
-    if (await pnpmWorkspace.exists()) {
+    if (existsSync(join(dir, "pnpm-workspace.yaml"))) {
       return dir;
     }
 
-    // Check for package.json with workspaces or as fallback
-    const packageJson = Bun.file(join(dir, "package.json"));
-    if (await packageJson.exists()) {
+    const pkgPath = join(dir, "package.json");
+    if (existsSync(pkgPath)) {
       try {
-        const content = await packageJson.json();
-        // If it has workspaces, it's likely a monorepo root
+        const content = JSON.parse(readFileSync(pkgPath, "utf-8"));
         if (content.workspaces) {
           return dir;
         }
@@ -74,8 +72,7 @@ async function findProjectRoot(filePath: string): Promise<string | null> {
   // Fallback: find any package.json
   dir = dirname(filePath);
   while (dir !== root) {
-    const packageJson = Bun.file(join(dir, "package.json"));
-    if (await packageJson.exists()) {
+    if (existsSync(join(dir, "package.json"))) {
       return dir;
     }
     dir = dirname(dir);
@@ -90,12 +87,14 @@ function log(message: string, ...args: unknown[]) {
   }
 }
 
-async function logToolUsage(entry: LogEntry) {
+function logToolUsage(entry: LogEntry) {
   try {
     const logLine = JSON.stringify(entry) + "\n";
-    const file = Bun.file(LOG_FILE);
-    const existingContent = (await file.exists()) ? await file.text() : "";
-    await Bun.write(LOG_FILE, existingContent + logLine);
+    if (existsSync(LOG_FILE)) {
+      appendFileSync(LOG_FILE, logLine);
+    } else {
+      writeFileSync(LOG_FILE, logLine);
+    }
   } catch (error) {
     log("Failed to write log:", error);
   }
@@ -104,36 +103,26 @@ async function logToolUsage(entry: LogEntry) {
 const COMMAND_TIMEOUT_MS = 10000; // 10 seconds max per command
 const TSC_TIMEOUT_MS = 30000; // 30 seconds for TypeScript (can be slow on large projects)
 
-async function runCommand(
+function runCommand(
   command: string[],
   cwd?: string,
   timeoutMs: number = COMMAND_TIMEOUT_MS,
-): Promise<{ stdout: string; stderr: string; success: boolean }> {
+): { stdout: string; stderr: string; success: boolean } {
   try {
-    const proc = Bun.spawn(command, {
-      stdout: "pipe",
-      stderr: "pipe",
+    const stdout = execFileSync(command[0], command.slice(1), {
       cwd,
+      timeout: timeoutMs,
+      encoding: "utf-8",
+      maxBuffer: 10 * 1024 * 1024,
     });
-
-    // Add timeout
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => {
-        proc.kill();
-        reject(new Error(`Command timed out after ${timeoutMs}ms`));
-      }, timeoutMs),
-    );
-
-    const resultPromise = (async () => {
-      const stdout = await new Response(proc.stdout).text();
-      const stderr = await new Response(proc.stderr).text();
-      const success = (await proc.exited) === 0;
-      return { stdout, stderr, success };
-    })();
-
-    return await Promise.race([resultPromise, timeoutPromise]);
-  } catch (error) {
-    return { stdout: "", stderr: String(error), success: false };
+    return { stdout, stderr: "", success: true };
+  } catch (error: unknown) {
+    const err = error as { stdout?: string; stderr?: string; status?: number };
+    return {
+      stdout: err.stdout ?? "",
+      stderr: err.stderr ?? String(error),
+      success: false,
+    };
   }
 }
 
@@ -141,7 +130,11 @@ async function main() {
   log("Hook started for file processing");
 
   // Read input JSON from stdin
-  const input = await Bun.stdin.text();
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  const input = Buffer.concat(chunks).toString();
   log("Input received, length:", input.length);
 
   let hookData: HookInput;
@@ -167,7 +160,7 @@ async function main() {
   }
 
   // Find project root from file path
-  const projectRoot = await findProjectRoot(filePath);
+  const projectRoot = findProjectRoot(filePath);
   if (!projectRoot) {
     log("No project root found for:", filePath);
     process.exit(0);
@@ -176,8 +169,7 @@ async function main() {
   log("Processing tool use:", { tool_use_id, tool_name, filePath, projectRoot });
 
   // Check that the file exists
-  const file = Bun.file(filePath);
-  if (!(await file.exists())) {
+  if (!existsSync(filePath)) {
     log("File not found:", filePath);
     process.exit(1);
   }
@@ -223,7 +215,7 @@ async function main() {
   // 1. Execute Prettier
   if (hasPrettier) {
     log("Running Prettier formatting");
-    const prettierResult = await runCommand(
+    const prettierResult = runCommand(
       [prettierBin, "--write", filePath],
       projectRoot,
     );
@@ -236,14 +228,14 @@ async function main() {
   // 2. ESLint --fix
   if (hasEslint) {
     log("Running ESLint --fix");
-    await runCommand([eslintBin, "--fix", filePath], projectRoot);
+    runCommand([eslintBin, "--fix", filePath], projectRoot);
   }
 
   // 3. Run ESLint check
   let eslintCheckResult = { stdout: "", stderr: "", success: true };
   if (hasEslint) {
     log("Running ESLint check");
-    eslintCheckResult = await runCommand([eslintBin, filePath], projectRoot);
+    eslintCheckResult = runCommand([eslintBin, filePath], projectRoot);
   }
 
   const eslintErrors = (
@@ -268,9 +260,9 @@ async function main() {
       // Try to get package name from package.json in tsconfigDir
       let packageName = "";
       try {
-        const pkgJson = Bun.file(join(tsconfigDir, "package.json"));
-        if (await pkgJson.exists()) {
-          const pkg = await pkgJson.json();
+        const pkgPath = join(tsconfigDir, "package.json");
+        if (existsSync(pkgPath)) {
+          const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
           packageName = pkg.name || "";
         }
       } catch {
@@ -280,14 +272,14 @@ async function main() {
       if (packageName) {
         log("Running turbo typecheck for package:", packageName);
         // Use turbo with filter for much faster cached builds
-        tscResult = await runCommand(
+        tscResult = runCommand(
           ["pnpm", "turbo", "run", "typecheck", `--filter=${packageName}`],
           projectRoot,
           TSC_TIMEOUT_MS,
         );
       } else {
         // Fallback to direct tsc if no package name found
-        tscResult = await runCommand(
+        tscResult = runCommand(
           [tscBin, "--noEmit", "-p", "tsconfig.json", "--pretty", "false"],
           tsconfigDir,
           TSC_TIMEOUT_MS,
@@ -295,7 +287,7 @@ async function main() {
       }
     } else {
       // No turbo, use tsc directly
-      tscResult = await runCommand(
+      tscResult = runCommand(
         [tscBin, "--noEmit", "-p", "tsconfig.json", "--pretty", "false"],
         tsconfigDir,
         TSC_TIMEOUT_MS,
@@ -333,7 +325,7 @@ async function main() {
   }
 
   // Log tool usage with tool_use_id for traceability
-  await logToolUsage({
+  logToolUsage({
     timestamp: new Date().toISOString(),
     session_id,
     tool_use_id,

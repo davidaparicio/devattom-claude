@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Stop hook - Play different sounds based on session success/failure
  *
@@ -11,10 +11,16 @@
  * automation to continue APEX workflow after Claude exits.
  */
 
-import { $ } from "bun";
+import { spawn, execFileSync } from "node:child_process";
+import { existsSync, readFileSync, unlinkSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
+const HOME = homedir();
+const CLAUDE_DIR = join(HOME, ".claude");
+const PLAY_SOUND = join(CLAUDE_DIR, "bin/play-sound");
 const YOLO_CONTINUE_FLAG = "/tmp/.apex-yolo-continue";
-const YOLO_CONTINUE_SCRIPT = "/Users/flo/.claude/scripts/apex/yolo-continue.ts";
+const YOLO_CONTINUE_SCRIPT = join(CLAUDE_DIR, "scripts/apex/yolo-continue.ts");
 
 interface StopHookInput {
   session_id: string;
@@ -22,19 +28,18 @@ interface StopHookInput {
   cwd: string;
 }
 
-const LOG_FILE = "/Users/flo/.claude/tool-usage.log";
-const SUCCESS_SOUND = "/Users/flo/.claude/song/finish.mp3";
-const FAILURE_SOUND = "/System/Library/Sounds/Basso.aiff";
+const LOG_FILE = join(CLAUDE_DIR, "tool-usage.log");
+const SUCCESS_SOUND = join(CLAUDE_DIR, "song/finish.mp3");
+const FAILURE_SOUND = join(CLAUDE_DIR, "song/failure.aiff");
 const VOLUME = "0.15";
 
-async function checkSessionHadErrors(sessionId: string): Promise<boolean> {
+function checkSessionHadErrors(sessionId: string): boolean {
   try {
-    const file = Bun.file(LOG_FILE);
-    if (!(await file.exists())) {
+    if (!existsSync(LOG_FILE)) {
       return false;
     }
 
-    const content = await file.text();
+    const content = readFileSync(LOG_FILE, "utf-8");
     const lines = content.trim().split("\n");
 
     // Track the LAST status for each file in this session
@@ -65,9 +70,9 @@ async function checkSessionHadErrors(sessionId: string): Promise<boolean> {
   }
 }
 
-async function playSound(soundPath: string, volume: string): Promise<void> {
+function playSound(soundPath: string, volume: string): void {
   try {
-    await $`afplay -v ${volume} ${soundPath}`.quiet();
+    execFileSync(PLAY_SOUND, [soundPath, volume], { stdio: "ignore" });
   } catch {
     // Silently fail if sound can't be played
   }
@@ -75,41 +80,42 @@ async function playSound(soundPath: string, volume: string): Promise<void> {
 
 async function main() {
   // Read input JSON from stdin
-  const input = await Bun.stdin.text();
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  const input = Buffer.concat(chunks).toString();
 
   let hookData: StopHookInput;
   try {
     hookData = JSON.parse(input);
   } catch {
     // If we can't parse input, just play success sound and exit
-    await playSound(SUCCESS_SOUND, VOLUME);
+    playSound(SUCCESS_SOUND, VOLUME);
     process.exit(0);
   }
 
   const { session_id } = hookData;
 
   // Check if session had errors
-  const hadErrors = await checkSessionHadErrors(session_id);
+  const hadErrors = checkSessionHadErrors(session_id);
 
   if (hadErrors) {
     // Play failure sound (louder)
-    await playSound(FAILURE_SOUND, "0.3");
+    playSound(FAILURE_SOUND, "0.3");
     // Don't continue YOLO if there were errors
-    await $`rm -f ${YOLO_CONTINUE_FLAG}`.quiet();
+    try { unlinkSync(YOLO_CONTINUE_FLAG); } catch { /* ignore */ }
   } else {
     // Play success sound
-    await playSound(SUCCESS_SOUND, VOLUME);
+    playSound(SUCCESS_SOUND, VOLUME);
 
     // Check for YOLO mode continuation
-    const yoloContinueFlag = Bun.file(YOLO_CONTINUE_FLAG);
-    if (await yoloContinueFlag.exists()) {
+    if (existsSync(YOLO_CONTINUE_FLAG)) {
       // Launch YOLO continue script in background
-      // This script will wait for Claude to exit, then send keystrokes
-      Bun.spawn(["bun", YOLO_CONTINUE_SCRIPT], {
-        stdout: "inherit",
-        stderr: "inherit",
-        stdin: "ignore",
-      });
+      spawn("npx", ["tsx", YOLO_CONTINUE_SCRIPT], {
+        stdio: ["ignore", "inherit", "inherit"],
+        detached: true,
+      }).unref();
     }
   }
 }

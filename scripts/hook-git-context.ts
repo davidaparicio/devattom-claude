@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * SessionStart Hook
  *
@@ -10,7 +10,7 @@
  * Fires on: startup, resume, clear
  */
 
-import { $ } from 'bun';
+import { execSync } from "node:child_process";
 
 interface SessionStartInput {
   session_id: string;
@@ -18,10 +18,22 @@ interface SessionStartInput {
   source: 'startup' | 'resume' | 'clear';
 }
 
-async function main() {
-  const stdin = await Bun.stdin.text();
-  let input: SessionStartInput;
+function git(cwd: string, args: string): string {
+  try {
+    return execSync(`git -C ${cwd} ${args} 2>/dev/null`, { encoding: "utf-8" }).trim();
+  } catch {
+    return "";
+  }
+}
 
+async function main() {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  const stdin = Buffer.concat(chunks).toString();
+
+  let input: SessionStartInput;
   try {
     input = JSON.parse(stdin);
   } catch {
@@ -42,43 +54,39 @@ async function main() {
   context.push(`Session started: ${now.toISOString().replace('T', ' ').slice(0, 19)}`);
 
   // Git context
-  try {
-    const branch = await $`git -C ${cwd} rev-parse --abbrev-ref HEAD 2>/dev/null`.text();
-    if (branch.trim()) {
-      context.push(`Git branch: ${branch.trim()}`);
+  const branch = git(cwd, "rev-parse --abbrev-ref HEAD");
+  if (branch) {
+    context.push(`Git branch: ${branch}`);
+  }
+
+  const status = git(cwd, "status --porcelain");
+  if (status) {
+    const lines = status.split('\n');
+    const modified = lines.filter(l => l.startsWith(' M') || l.startsWith('M ')).length;
+    const staged = lines.filter(l => l.startsWith('A ') || l.startsWith('M ')).length;
+    const untracked = lines.filter(l => l.startsWith('??')).length;
+
+    const statusParts: string[] = [];
+    if (staged > 0) statusParts.push(`${staged} staged`);
+    if (modified > 0) statusParts.push(`${modified} modified`);
+    if (untracked > 0) statusParts.push(`${untracked} untracked`);
+
+    if (statusParts.length > 0) {
+      context.push(`Git status: ${statusParts.join(', ')}`);
     }
 
-    const status = await $`git -C ${cwd} status --porcelain 2>/dev/null`.text();
-    if (status.trim()) {
-      const lines = status.trim().split('\n');
-      const modified = lines.filter(l => l.startsWith(' M') || l.startsWith('M ')).length;
-      const staged = lines.filter(l => l.startsWith('A ') || l.startsWith('M ')).length;
-      const untracked = lines.filter(l => l.startsWith('??')).length;
-
-      const statusParts: string[] = [];
-      if (staged > 0) statusParts.push(`${staged} staged`);
-      if (modified > 0) statusParts.push(`${modified} modified`);
-      if (untracked > 0) statusParts.push(`${untracked} untracked`);
-
-      if (statusParts.length > 0) {
-        context.push(`Git status: ${statusParts.join(', ')}`);
-      }
-
-      if (lines.length > 0) {
-        const changedFiles = lines
-          .slice(0, 5)
-          .map(l => l.slice(3).trim())
-          .join(', ');
-        context.push(`Changed files: ${changedFiles}${lines.length > 5 ? ` (+${lines.length - 5} more)` : ''}`);
-      }
+    if (lines.length > 0) {
+      const changedFiles = lines
+        .slice(0, 5)
+        .map(l => l.slice(3).trim())
+        .join(', ');
+      context.push(`Changed files: ${changedFiles}${lines.length > 5 ? ` (+${lines.length - 5} more)` : ''}`);
     }
+  }
 
-    const lastCommit = await $`git -C ${cwd} log -1 --oneline 2>/dev/null`.text();
-    if (lastCommit.trim()) {
-      context.push(`Last commit: ${lastCommit.trim().slice(0, 60)}`);
-    }
-  } catch {
-    // Not a git repo - skip git context
+  const lastCommit = git(cwd, "log -1 --oneline");
+  if (lastCommit) {
+    context.push(`Last commit: ${lastCommit.slice(0, 60)}`);
   }
 
   if (context.length > 0) {

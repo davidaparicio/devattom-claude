@@ -13,46 +13,33 @@ This file provides guidance to Claude Code when working with the command-validat
 
 The validator is integrated as a hook in Claude Code settings and blocks dangerous commands while allowing safe operations.
 
-## CRITICAL: This Project Uses BUN
+## Runtime: Node.js + tsx
 
-**NEVER use npm or node commands. This project exclusively uses BUN.**
+This project uses **Node.js** with **tsx** as TypeScript runner. No Bun required.
 
 ## Development Commands
 
-**CRITICAL**: Only use these BUN commands:
-
 ### Testing (Primary Workflow)
-- `bun test` - Run all tests with Vitest
-- `bun test:ui` - Run tests with UI interface
-- `bun run test` - Alternative test command
+- `npx vitest run` - Run all tests
+- `npx vitest` - Run tests in watch mode
+- `npx vitest --ui` - Run tests with UI interface
 
 ### Code Quality
-- `bun run lint` - Run Biome linter and auto-fix
-- `bun run format` - Format code with Biome
-- `bunx tsc --noEmit` - TypeScript type checking (no build)
+- `npm run lint` - Run Biome linter and auto-fix
+- `npm run format` - Format code with Biome
+- `npx tsc --noEmit` - TypeScript type checking
 
 ### Execution
-- `bun src/cli.ts` - Run CLI validator directly
-- `bun install` - Install dependencies
+- `npx tsx src/cli.ts` - Run CLI validator directly
+- `npm install` - Install dependencies
 
 ## Development Workflow
 
-**CRITICAL**: The majority of work on this project follows this simple cycle:
-
 ### Test-Driven Development Cycle
-1. **Run tests**: `bun test`
+1. **Run tests**: `npx vitest run`
 2. **Read errors**: Analyze test failures carefully
 3. **Fix the problem**: Make minimal changes to pass tests
-4. **Re-run tests**: `bun test` until ALL tests pass
-5. **Repeat**: Continue cycle until all tests are green
-
-**ALWAYS follow this workflow:**
-```bash
-bun test          # See what's broken
-# Fix the code
-bun test          # Verify fix works
-# Repeat until green
-```
+4. **Re-run tests**: `npx vitest run` until ALL tests pass
 
 ## Architecture Overview
 
@@ -64,49 +51,24 @@ src/
 │   ├── security-rules.ts  # Security rules database
 │   └── validator.ts       # Core validation logic
 └── __tests__/
-    └── validator.test.ts  # Comprehensive test suite (82+ tests)
+    └── validator.test.ts  # Comprehensive test suite (128+ tests)
 ```
 
 ### Key Files
-- **@scripts/command-validator/src/lib/validator.ts** - Core CommandValidator class
-- **@scripts/command-validator/src/lib/security-rules.ts** - Security rules database
-- **@scripts/command-validator/src/__tests__/validator.test.ts** - All test cases
+- **src/lib/validator.ts** - Core CommandValidator class
+- **src/lib/security-rules.ts** - Security rules database
+- **src/__tests__/validator.test.ts** - All test cases
 
 ## Code Conventions
 
 - **TypeScript**: Strict mode enabled
-- **Testing**: Vitest with comprehensive coverage (82+ tests)
+- **Testing**: Vitest with comprehensive coverage (128+ tests)
 - **Linting**: Biome for formatting and linting
 - **Imports**: ESM module format only
 
-## Security Test Categories
-
-The test suite validates:
-1. **Safe Commands**: ls, git, npm, cat, cp, mv, mkdir (must allow)
-2. **Dangerous Commands**: rm -rf /, dd, sudo, passwd (must block)
-3. **Special Cases**: rm -rf safety rules, protected paths, command chains
-4. **Malicious Patterns**: Fork bombs, backdoors, log manipulation
-
-## IMPORTANT: Workflow Rules
-
-- **BEFORE making changes**: Run `bun test` to see current state
-- **AFTER any code change**: Run `bun test` to verify
-- **NEVER assume tests pass**: Always verify with `bun test`
-- **Fix one test at a time**: Make minimal changes, then re-test
-- **Use Bun ONLY**: No npm, node, or yarn commands
-
 ## Common Modifications
 
-Most changes involve:
-1. **Adding new security rules** → Update @scripts/command-validator/src/lib/security-rules.ts
-2. **Modifying validation logic** → Update @scripts/command-validator/src/lib/validator.ts
-3. **Adding test cases** → Update @scripts/command-validator/src/__tests__/validator.test.ts
-4. **Run tests after each change** → `bun test`
-
-## Test Execution Priority
-
-**ALWAYS use the test-driven approach:**
-- Tests define the requirements
-- Code changes must make tests pass
-- All 82+ tests must be green before committing
-- Use `bun test` continuously during development
+1. **Adding new security rules** → Update `src/lib/security-rules.ts`
+2. **Modifying validation logic** → Update `src/lib/validator.ts`
+3. **Adding test cases** → Update `src/__tests__/validator.test.ts`
+4. **Run tests after each change** → `npx vitest run`

@@ -1,12 +1,15 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
-import { join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { HookInput, HookOutput } from "./lib/types";
 import { CommandValidator } from "./lib/validator";
 
-const LOG_FILE = join(import.meta.dir, "../data/security.log");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const LOG_FILE = join(__dirname, "../data/security.log");
 
-async function logSecurityEvent(
+function logSecurityEvent(
 	command: string,
 	toolName: string,
 	result: { isValid: boolean; severity: string; violations: string[] },
@@ -26,14 +29,16 @@ async function logSecurityEvent(
 
 	try {
 		const logLine = `${JSON.stringify(logEntry)}\n`;
-		const file = Bun.file(LOG_FILE);
-		const exists = await file.exists();
+		const logDir = dirname(LOG_FILE);
 
-		if (exists) {
-			const existingContent = await file.text();
-			await Bun.write(LOG_FILE, existingContent + logLine);
+		if (!existsSync(logDir)) {
+			mkdirSync(logDir, { recursive: true });
+		}
+
+		if (existsSync(LOG_FILE)) {
+			appendFileSync(LOG_FILE, logLine);
 		} else {
-			await Bun.write(LOG_FILE, logLine);
+			writeFileSync(LOG_FILE, logLine);
 		}
 
 		console.error(
@@ -48,11 +53,10 @@ async function main() {
 	const validator = new CommandValidator();
 
 	try {
-		const stdin = process.stdin;
 		const chunks: Buffer[] = [];
 
-		for await (const chunk of stdin) {
-			chunks.push(chunk);
+		for await (const chunk of process.stdin) {
+			chunks.push(Buffer.from(chunk));
 		}
 
 		const input = Buffer.concat(chunks).toString();
@@ -87,7 +91,7 @@ async function main() {
 
 		const result = validator.validate(command, toolName);
 
-		await logSecurityEvent(command, toolName, result, sessionId);
+		logSecurityEvent(command, toolName, result, sessionId);
 
 		if (result.isValid) {
 			console.log("Command validation passed");
