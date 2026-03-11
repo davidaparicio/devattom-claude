@@ -1,51 +1,51 @@
 ---
 name: step-00b-branch
-description: Vérifie et setup la branche git pour le workflow Forge
+description: Verify and setup git branch for Forge workflow
 returns_to: step-00-init.md
 ---
 
-# Step 0b : Branch Setup
+# Step 0b: Branch Setup
 
-## RÈGLES :
+## RULES:
 
-- 🛑 JAMAIS committer sur main/master quand branch_mode est activé
-- ✅ TOUJOURS vérifier la branche courante d'abord
-- ✅ TOUJOURS stocker {branch_name} avant de retourner
+- 🛑 NEVER commit directly to main/master when branch_mode enabled
+- ✅ ALWAYS check current branch first
+- ✅ ALWAYS store {branch_name} before returning
 
-## SÉQUENCE :
+## SEQUENCE:
 
-### 1. Vérifier la branche courante
+### 1. Check Current Branch
 
 ```bash
 git branch --show-current
 ```
 
-### 2. Évaluer
+### 2. Evaluate
 
-**Si `main` ou `master` :** → créer une branche
-**Sinon :** → `{branch_name}` = branche courante, retourner
+**If `main` or `master`:** → create a branch
+**Otherwise:** → `{branch_name}` = current branch, return
 
-### 3. Créer la branche
+### 3. Create Feature Branch
 
-**Si `{auto_mode}` = true :**
-→ Créer `feat/{task_id}` automatiquement
+**If `{auto_mode}` = true:**
+→ Auto-create: `feat/{task_id}`
 
-**Si `{auto_mode}` = false :**
+**If `{auto_mode}` = false:**
 ```yaml
 questions:
-  - header: "Branche"
-    question: "Vous êtes sur {current_branch}. Créer une branche ?"
+  - header: "Branch"
+    question: "You're on {current_branch}. Create a new branch for this task?"
     options:
-      - label: "Créer feat/{task_id} (Recommandé)"
-        description: "Créer et basculer sur la branche"
-      - label: "Nom personnalisé"
-        description: "Spécifier un nom de branche"
-      - label: "Rester sur {current_branch}"
-        description: "Continuer sans créer de branche"
+      - label: "Create feat/{task_id} (Recommended)"
+        description: "Create and switch to new branch"
+      - label: "Custom branch name"
+        description: "Specify a custom branch name"
+      - label: "Stay on {current_branch}"
+        description: "Continue without creating a branch"
     multiSelect: false
 ```
 
-### 4. Exécuter
+### 4. Execute
 
 ```bash
 git checkout -b feat/{task_id}
@@ -53,6 +53,6 @@ git checkout -b feat/{task_id}
 
 → `{branch_name}` = `feat/{task_id}`
 
-### 5. Retourner
+### 5. Return
 
-→ Retour à step-00-init.md avec `{branch_name}` défini
+→ Return to step-00-init.md with `{branch_name}` set

@@ -1,173 +1,173 @@
 ---
 name: step-03-execute
-description: Exécution du plan avec dispatch intelligent selon complexité et budget
+description: Plan execution with intelligent dispatch based on complexity and budget
 prev_step: ./step-02-plan.md
 next_step: ./step-04-test.md
 ---
 
-# Phase 3 : Exécution
+# Phase 3: Execute
 
-## RÈGLES :
+## RULES:
 
-- 🛑 JAMAIS dévier du plan approuvé
-- 🛑 JAMAIS ajouter de features hors plan (scope creep)
-- 🛑 JAMAIS modifier un fichier sans le lire d'abord
-- ✅ TOUJOURS suivre le plan fichier par fichier
-- ✅ TOUJOURS lire les fichiers AVANT de les éditer
-- ✅ TOUJOURS dispatcher au bon sous-agent selon la complexité
-- 📋 TU ES UN CHEF D'ORCHESTRE qui dispatche aux sous-agents
+- 🛑 NEVER deviate from the approved plan
+- 🛑 NEVER add features not in the plan (scope creep)
+- 🛑 NEVER modify a file without reading it first
+- ✅ ALWAYS follow the plan file by file
+- ✅ ALWAYS read files BEFORE editing them
+- ✅ ALWAYS dispatch to the right sub-agent based on complexity
+- 📋 YOU ARE AN ORCHESTRATOR dispatching to sub-agents
 
-## ALLOCATION MODÈLE :
+## MODEL ALLOCATION:
 
 <critical>
-Consulter `budget-profiles.md` pour le dispatch selon `{budget}` :
+Consult `budget-profiles.md` for dispatch based on `{budget}`:
 
-Chaque tâche du plan est taguée [simple/moderate/complex].
-Le dispatch dépend du tag ET du budget :
+Each plan task is tagged [simple/moderate/complex].
+Dispatch depends on tag AND budget:
 
-**Budget `low` :**
-- simple → sous-agent snipper (model: sonnet, effort: faible)
-- moderate → contexte principal (Sonnet faible)
-- complex → contexte principal (Sonnet faible)
+**Budget `low`:**
+- simple → snipper sub-agent (model: sonnet, effort: low)
+- moderate → main context (Sonnet low)
+- complex → main context (Sonnet low)
 
-**Budget `mid` :**
-- simple → sous-agent snipper (model: sonnet, effort: faible)
-- moderate → sous-agent file-writer (model: sonnet, effort: élevé)
-- complex → contexte principal (Sonnet effort élevé)
+**Budget `mid`:**
+- simple → snipper sub-agent (model: sonnet, effort: low)
+- moderate → file-writer sub-agent (model: sonnet, effort: high)
+- complex → main context (Sonnet high effort)
 
-**Budget `high` :**
-- simple → sous-agent snipper (model: sonnet, effort: faible)
-- moderate → sous-agent file-writer (model: opus, effort: moyen)
-- complex → contexte principal (Opus effort élevé)
+**Budget `high`:**
+- simple → snipper sub-agent (model: sonnet, effort: low)
+- moderate → file-writer sub-agent (model: opus, effort: medium)
+- complex → main context (Opus high effort)
 </critical>
 
-## RESTAURATION CONTEXTE (mode resume) :
+## CONTEXT RESTORATION (resume mode):
 
 <critical>
-Si chargé via resume :
-1. Lire `{output_dir}/00-context.md` → flags, task info
-2. Lire `{output_dir}/02-plan.md` → le plan
-3. `git diff --name-only` pour détecter le travail partiel
-4. Croiser avec le plan → sauter les items déjà faits
+If loaded via resume:
+1. Read `{output_dir}/00-context.md` → flags, task info
+2. Read `{output_dir}/02-plan.md` → the plan
+3. `git diff --name-only` to detect partial work
+4. Cross-reference with plan → skip already-completed items
 </critical>
 
 ---
 
-## SÉQUENCE :
+## SEQUENCE:
 
-### 1. Init save (si save_mode)
+### 1. Init Save (if save_mode)
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "03" "execute" "in_progress"
 ```
 
-### 2. Git checkpoint (filet de sécurité)
+### 2. Git Checkpoint (safety net)
 
 ```bash
-git add -u && git commit --allow-empty -m "forge: checkpoint avant exécution ({task_id})"
+git add -u && git commit --allow-empty -m "forge: checkpoint before execute ({task_id})"
 ```
 
-### 3. Créer les todos depuis le plan
+### 3. Create Todos from Plan
 
-Convertir chaque changement du plan en todo avec son tag de complexité :
+Convert each plan change into a todo with its complexity tag:
 
 ```
 Plan entry:
 #### `src/auth/handler.ts` [moderate]
-- Ajouter `validateToken`
-- Gérer l'erreur token expiré
+- Add `validateToken`
+- Handle expired token error
 
-Devient:
-- [ ] [moderate] src/auth/handler.ts: Ajouter validateToken
-- [ ] [moderate] src/auth/handler.ts: Gérer erreur token expiré
+Becomes:
+- [ ] [moderate] src/auth/handler.ts: Add validateToken
+- [ ] [moderate] src/auth/handler.ts: Handle expired token error
 ```
 
-### 4. Exécuter fichier par fichier
+### 4. Execute File by File
 
-Pour chaque todo, dispatcher selon la complexité :
+For each todo, dispatch based on complexity:
 
-**4a. Tâches `[simple]` → Sous-agent snipper**
+**4a. `[simple]` tasks → Snipper sub-agent**
 
-Lancer un Agent avec :
+Launch an Agent with:
 ```
 model: sonnet
 subagent_type: Snipper
-prompt: "Modifier {file_path}:
-  - {description exacte du changement}
-  - Suivre le pattern de {reference_file}:{line}
-  NE PAS ajouter de commentaires ou features supplémentaires."
+prompt: "Modify {file_path}:
+  - {exact change description}
+  - Follow pattern from {reference_file}:{line}
+  Do NOT add comments or extra features."
 ```
 
-Plusieurs tâches simples INDÉPENDANTES peuvent être lancées en parallèle.
+Multiple independent simple tasks CAN be launched in parallel.
 
-**4b. Tâches `[moderate]` → Sous-agent file-writer OU contexte principal**
+**4b. `[moderate]` tasks → File-writer sub-agent OR main context**
 
-En budget `mid`/`high`, lancer un Agent avec :
+In budget `mid`/`high`, launch an Agent with:
 ```
-model: sonnet (mid) ou opus (high)
-prompt: "Implémenter dans {file_path}:
-  - {description détaillée}
-  - Patterns à suivre : {patterns de la recherche}
-  - Lire le fichier avant de modifier.
-  NE PAS ajouter de features hors scope."
+model: sonnet (mid) or opus (high)
+prompt: "Implement in {file_path}:
+  - {detailed description}
+  - Patterns to follow: {patterns from research}
+  - Read file before modifying.
+  Do NOT add out-of-scope features."
 ```
 
-En budget `low`, faire directement dans le contexte principal.
+In budget `low`, execute directly in main context.
 
-**4c. Tâches `[complex]` → Contexte principal**
+**4c. `[complex]` tasks → Main context**
 
-Toujours exécuter dans le contexte principal :
-1. Lire le fichier cible
-2. Comprendre la structure existante
-3. Implémenter selon le plan
-4. Suivre les patterns documentés en phase 1
+Always execute in main context:
+1. Read the target file
+2. Understand existing structure
+3. Implement per plan
+4. Follow patterns documented in phase 1
 
-### 5. Gérer les blocages
+### 5. Handle Blockers
 
-**Si `{auto_mode}` = true :** décision raisonnable et continuer
-**Sinon :** utiliser AskUserQuestion
+**If `{auto_mode}` = true:** make reasonable decision and continue
+**Otherwise:** use AskUserQuestion
 
-### 6. Vérification rapide
+### 6. Quick Verification
 
 ```bash
-# Vérification rapide — le linting/typecheck complet est en phase 4
+# Quick check — full lint/typecheck is in phase 4
 git diff --stat
 ```
 
-### 7. Résumé d'implémentation
+### 7. Implementation Summary
 
 ```
-**Implémentation terminée**
+**Implementation Complete**
 
-**Fichiers modifiés :**
-- `src/auth/handler.ts` — ajouté validateToken, gestion erreurs
-- `src/api/auth/route.ts` — intégré validation token
+**Files modified:**
+- `src/auth/handler.ts` — added validateToken, error handling
+- `src/api/auth/route.ts` — integrated token validation
 
-**Nouveaux fichiers :**
-- `src/types/auth.ts` — définitions de types
+**New files:**
+- `src/types/auth.ts` — type definitions
 
-**Todos :** {X}/{Y} complétés
-**Sous-agents utilisés :** {count} snipper, {count} file-writer
+**Todos:** {X}/{Y} completed
+**Sub-agents used:** {count} snipper, {count} file-writer
 ```
 
-### 8. Save output (si save_mode)
+### 8. Save Output (if save_mode)
 
-Append à `{output_dir}/03-execute.md`.
+Append to `{output_dir}/03-execute.md`.
 
 ---
 
-## NEXT STEP :
+## NEXT STEP:
 
 <critical>
-PAS de session boundary ici — l'exécution enchaîne directement vers les tests.
+NO session boundary here — execution chains directly to tests.
 </critical>
 
 ```
-→ Si {branch_mode} = true, committer :
+→ If {branch_mode} = true, commit:
   git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 03 - execute"
 
-→ Si save_mode = true :
+→ If save_mode = true:
   bash {skill_dir}/scripts/update-progress.sh "{task_id}" "03" "execute" "complete"
 
-→ Charger ./step-04-test.md directement
+→ Load ./step-04-test.md directly
 ```

@@ -1,192 +1,192 @@
 ---
 name: step-01-research
-description: Recherche contextuelle — explorer l'existant avec ultra think
+description: Contextual research — explore what exists with ultra think
 next_step: ./step-02-plan.md
 ---
 
-# Phase 1 : Recherche
+# Phase 1: Research
 
-## RÈGLES :
+## RULES:
 
-- 🛑 JAMAIS planifier ou designer — c'est la phase 2
-- 🛑 JAMAIS créer de todos ou tâches d'implémentation
-- ✅ TOUJOURS se concentrer sur la découverte de CE QUI EXISTE
-- ✅ TOUJOURS reporter les résultats avec chemins de fichiers et numéros de ligne
-- 📋 TU ES UN EXPLORATEUR, pas un planificateur
-- 🧠 ULTRA THINK avant de lancer les agents
+- 🛑 NEVER plan or design — that's phase 2
+- 🛑 NEVER create todos or implementation tasks
+- ✅ ALWAYS focus on discovering WHAT EXISTS
+- ✅ ALWAYS report findings with file paths and line numbers
+- 📋 YOU ARE AN EXPLORER, not a planner
+- 🧠 ULTRA THINK before launching agents
 
-## BRANCHEMENT TEAM MODE :
+## TEAM MODE BRANCHING:
 
 <critical>
-SI {team_mode} = true :
-  → Ne PAS exécuter ce fichier.
-  → Charger `./step-01b-team-research.md` à la place.
+IF {team_mode} = true:
+  → Do NOT execute this file.
+  → Load `./step-01b-team-research.md` instead.
 </critical>
 
-## RESTAURATION CONTEXTE (mode resume) :
+## CONTEXT RESTORATION (resume mode):
 
 <critical>
-Si chargé via `/forge -r {task_id}` :
-1. Lire `{output_dir}/00-context.md` → restaurer flags, task info, critères
-2. Procéder normalement
+If loaded via `/forge -r {task_id}`:
+1. Read `{output_dir}/00-context.md` → restore flags, task info, criteria
+2. Proceed normally
 </critical>
 
 ---
 
-## SÉQUENCE D'EXÉCUTION :
+## EXECUTION SEQUENCE:
 
-### 1. Initialiser save output (si save_mode)
+### 1. Initialize Save Output (if save_mode)
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "01" "research" "in_progress"
 ```
 
-### 1b. Lire les documents de référence (si présents)
+### 1b. Read Reference Documents (if any)
 
 <critical>
-Si `{reference_files}` n'est pas vide : lire le fichier de référence EN PREMIER.
-Extraire : objectif, décisions de design, détails d'implémentation, contraintes.
+If `{reference_files}` is not empty: read the reference file FIRST.
+Extract: objective, design decisions, implementation details, constraints.
 </critical>
 
-### 2. ULTRA THINK : Analyser la complexité
+### 2. ULTRA THINK: Analyze Complexity
 
 ```
-Tâche : {task_description}
+Task: {task_description}
 
-1. SCOPE : Combien de zones du codebase sont affectées ?
-   - Fichier/fonction unique → Faible
-   - Plusieurs fichiers liés → Moyen
-   - Préoccupations transversales → Élevé
+1. SCOPE: How many codebase areas are affected?
+   - Single file/function → Low
+   - Multiple related files → Medium
+   - Cross-cutting concerns → High
 
-2. BIBLIOTHÈQUES : Quelles libs externes ?
-   - Aucune ou basiques connues → Skip docs
-   - Lib inconnue → Besoin de docs
-   - Multiples libs en interaction → Multiples agents docs
+2. LIBRARIES: Which external libraries?
+   - None or well-known basics → Skip docs
+   - Unfamiliar library → Need docs
+   - Multiple interacting libraries → Multiple doc agents
 
-3. PATTERNS : Dois-je comprendre les patterns existants ?
-4. INCERTITUDE : Sur quoi suis-je incertain ?
+3. PATTERNS: Do I need to understand existing patterns?
+4. UNCERTAINTY: What am I unsure about?
 ```
 
-### 3. Choisir et lancer les agents
+### 3. Choose and Launch Agents
 
-**Consulter `budget-profiles.md` pour le nombre et type d'agents selon `{budget}` :**
+**Consult `budget-profiles.md` for agent count and type based on `{budget}`:**
 
-**Budget `low` — 1 agent :**
+**Budget `low` — 1 agent:**
 ```
-Un seul agent Explore (Haiku) pour trouver les fichiers pertinents.
-Retourner chemins + signatures uniquement.
-```
-
-**Budget `mid` — 2-3 agents parallèles :**
-```
-Agent 1 (Haiku, subagent_type=Explore) : Explorer le codebase
-  → Retourner chemins, signatures, patterns
-Agent 2 (Haiku, subagent_type=Explore) : Explorer la documentation
-  → Résumé condensé des APIs pertinentes
-Agent 3 (Haiku, subagent_type=websearch) : Bonnes pratiques [optionnel]
-  → Approches courantes, pièges
+Single Explore agent (Haiku) to find relevant files.
+Return paths + signatures only.
 ```
 
-**Budget `high` — 3-5 agents parallèles + ultra think :**
+**Budget `mid` — 2-3 parallel agents:**
 ```
-Agent 1-2 (Sonnet, subagent_type=Explore) : Explorer codebase en profondeur
-Agent 3 (Sonnet, subagent_type=explore-docs) : Documentation libs via Context7
-Agent 4 (Sonnet, subagent_type=websearch) : Recherche web
-Agent 5 (Sonnet, subagent_type=Explore) : Patterns de test existants [optionnel]
-```
-
-<critical>
-LANCER TOUS les agents en UNE SEULE réponse (parallèle).
-Chaque agent DOIT retourner un résumé compact — PAS les fichiers entiers.
-Format de retour attendu : chemins, signatures, résumés d'une ligne.
-</critical>
-
-### 4. Synthétiser les résultats
-
-```markdown
-## Exigences de la tâche
-
-### Objectif
-{Description claire en 2-3 phrases}
-
-### Spécifications clés
-- {Exigence technique spécifique}
-- {Schéma/interface à implémenter}
-- {Points d'intégration}
-
-### Référence
-{Source de la spécification}
+Agent 1 (Haiku, subagent_type=Explore): Explore codebase
+  → Return paths, signatures, patterns
+Agent 2 (Haiku, subagent_type=Explore): Explore documentation
+  → Condensed summary of relevant APIs
+Agent 3 (Haiku, subagent_type=websearch): Best practices [optional]
+  → Common approaches, pitfalls
 ```
 
-```markdown
-## Contexte du codebase
-
-### Fichiers pertinents trouvés
-| Fichier | Lignes | Contenu |
-|---------|--------|---------|
-| `src/auth/login.ts` | 1-150 | Implémentation login existante |
-
-### Patterns observés
-- **Pattern route** : utilise Next.js App Router
-- **Validation** : schémas zod dans `schemas/`
-
-### Utilitaires disponibles
-- `src/lib/auth.ts` — fonctions JWT
-
-### Patterns de test
-- Tests dans `__tests__/`
-- Utilise vitest avec testing-library
+**Budget `high` — 3-5 parallel agents + ultra think:**
 ```
-
-### 5. Inférer les critères d'acceptation
-
-```markdown
-## Critères d'acceptation inférés
-
-- [ ] AC1: [résultat mesurable spécifique]
-- [ ] AC2: [résultat mesurable spécifique]
-- [ ] AC3: [résultat mesurable spécifique]
-```
-
-**Si `{save_mode}` = true :** Mettre à jour les AC dans 00-context.md
-
-### 6. Présenter le résumé
-
-```
-**Recherche terminée**
-
-**Fichiers analysés :** {count}
-**Patterns identifiés :** {count}
-**Utilitaires trouvés :** {count}
-
-**Résultats clés :**
-- {résumé fichiers pertinents}
-- {patterns qui guideront l'implémentation}
+Agent 1-2 (Sonnet, subagent_type=Explore): Deep codebase exploration
+Agent 3 (Sonnet, subagent_type=explore-docs): Library docs via Context7
+Agent 4 (Sonnet, subagent_type=websearch): Web research
+Agent 5 (Sonnet, subagent_type=Explore): Existing test patterns [optional]
 ```
 
 <critical>
-Ne PAS demander de confirmation — suivre directement la logique de session boundary.
+LAUNCH ALL agents in ONE response (parallel).
+Each agent MUST return a compact summary — NOT full file contents.
+Expected return format: paths, signatures, one-line summaries.
 </critical>
 
-### 7. Compléter save output (si save_mode)
+### 4. Synthesize Findings
 
-Append les résultats à `{output_dir}/01-research.md`.
+```markdown
+## Task Requirements
+
+### Objective
+{Clear 2-3 sentence description}
+
+### Key Specifications
+- {Specific technical requirement}
+- {Schema/interface to implement}
+- {Integration points}
+
+### Reference
+{Specification source}
+```
+
+```markdown
+## Codebase Context
+
+### Related Files Found
+| File | Lines | Contains |
+|------|-------|----------|
+| `src/auth/login.ts` | 1-150 | Existing login implementation |
+
+### Patterns Observed
+- **Route pattern**: Uses Next.js App Router
+- **Validation**: Zod schemas in `schemas/`
+
+### Available Utilities
+- `src/lib/auth.ts` — JWT functions
+
+### Test Patterns
+- Tests in `__tests__/`
+- Uses vitest with testing-library
+```
+
+### 5. Infer Acceptance Criteria
+
+```markdown
+## Inferred Acceptance Criteria
+
+- [ ] AC1: [specific measurable outcome]
+- [ ] AC2: [specific measurable outcome]
+- [ ] AC3: [specific measurable outcome]
+```
+
+**If `{save_mode}` = true:** Update AC in 00-context.md
+
+### 6. Present Summary
+
+```
+**Research Complete**
+
+**Files analyzed:** {count}
+**Patterns identified:** {count}
+**Utilities found:** {count}
+
+**Key findings:**
+- {relevant files summary}
+- {patterns that will guide implementation}
+```
+
+<critical>
+Do NOT ask for confirmation — follow session boundary logic directly.
+</critical>
+
+### 7. Complete Save Output (if save_mode)
+
+Append findings to `{output_dir}/01-research.md`.
 
 ---
 
-## NEXT STEP :
+## NEXT STEP:
 
 ### Session Boundary
 
 ```
-SI auto_mode = true :
-  → Si save_mode = true :
+IF auto_mode = true:
+  → If save_mode = true:
     bash {skill_dir}/scripts/update-progress.sh "{task_id}" "01" "research" "complete"
-  → Charger ./step-02-plan.md directement
+  → Load ./step-02-plan.md directly
 
-SI auto_mode = false :
-  → Exécuter (si save_mode) :
-    bash {skill_dir}/scripts/session-boundary.sh "{task_id}" "01" "research" "Résultats : {count} fichiers, {count} patterns" "02-plan" "Plan (Planification)" "**01-research:** {résumé une ligne}"
-  → Afficher le résultat à l'utilisateur
-  → STOP. L'utilisateur doit lancer /forge -r {task_id} pour continuer.
+IF auto_mode = false:
+  → Run (if save_mode):
+    bash {skill_dir}/scripts/session-boundary.sh "{task_id}" "01" "research" "Findings: {count} files, {count} patterns" "02-plan" "Plan (Strategic Design)" "**01-research:** {one-line summary}"
+  → Display output to user
+  → STOP. User must run /forge -r {task_id} to continue.
 ```

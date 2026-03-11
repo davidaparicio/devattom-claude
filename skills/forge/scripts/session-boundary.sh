@@ -1,5 +1,5 @@
 #!/bin/bash
-# Forge — Gère les frontières de session (pause entre phases)
+# Forge — Handle session boundaries (pauses between phases)
 #
 # Usage: session-boundary.sh "task_id" "step_num" "step_name" "summary" "next_step" "next_description" "step_context" ["gotcha"] ["branch_mode"] ["commit"]
 
@@ -21,14 +21,14 @@ CONTEXT_FILE="${PROJECT_ROOT}/.claude/output/forge/${TASK_ID}/00-context.md"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ ! -f "$CONTEXT_FILE" ]]; then
-    echo "Error: Fichier contexte introuvable : $CONTEXT_FILE" >&2
+    echo "Error: Context file not found: $CONTEXT_FILE" >&2
     exit 1
 fi
 
-# 1. Marquer le step comme terminé
+# 1. Mark step as complete
 bash "$SCRIPT_DIR/update-progress.sh" "$TASK_ID" "$STEP_NUMBER" "$STEP_NAME" "complete"
 
-# 2. Mettre à jour le state snapshot (next_step + step context)
+# 2. Update state snapshot (next_step + step context)
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 TEMP_FILE=$(mktemp)
 
@@ -36,13 +36,13 @@ awk -v next_step="$NEXT_STEP" \
     -v step_context="$STEP_CONTEXT" \
     -v gotcha="$GOTCHA" '
 {
-    # Mettre à jour next_step
+    # Update next_step
     if ($0 ~ /^\*\*next_step:\*\*/) {
         printf "**next_step:** %s\n", next_step
         next
     }
 
-    # Ajouter le contexte du step
+    # Add step context
     if ($0 ~ /^_Brief summaries added as steps complete_/) {
         print step_context
         next
@@ -52,7 +52,7 @@ awk -v next_step="$NEXT_STEP" \
         next
     }
 
-    # Ajouter gotcha si présent
+    # Add gotcha if present
     if (gotcha != "" && $0 ~ /^_Surprises, workarounds/) {
         print gotcha
         next
@@ -64,21 +64,21 @@ awk -v next_step="$NEXT_STEP" \
 
 mv "$TEMP_FILE" "$CONTEXT_FILE"
 
-# 3. Commit si branch_mode et demandé
+# 3. Commit if branch_mode and requested
 if [[ "$BRANCH_MODE" == "true" ]] && [[ "$COMMIT_FLAG" == "commit" ]]; then
     git add -u 2>/dev/null && git diff --cached --quiet 2>/dev/null || \
         git commit -m "forge(${TASK_ID}): phase ${STEP_NUMBER} - ${STEP_NAME}" 2>/dev/null || true
 fi
 
-# 4. Afficher la frontière de session
+# 4. Display session boundary
 cat <<EOF
 
 ═══════════════════════════════════════
-  PHASE ${STEP_NUMBER} TERMINÉE : ${STEP_NAME}
+  PHASE ${STEP_NUMBER} COMPLETE: ${STEP_NAME}
 ═══════════════════════════════════════
   ${SUMMARY}
-  Reprendre : /forge -r ${TASK_ID}
-  Suivant : Phase ${NEXT_STEP} - ${NEXT_DESCRIPTION}
+  Resume: /forge -r ${TASK_ID}
+  Next: Phase ${NEXT_STEP} - ${NEXT_DESCRIPTION}
 ═══════════════════════════════════════
 
 EOF

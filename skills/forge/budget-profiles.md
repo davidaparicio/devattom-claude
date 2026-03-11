@@ -1,65 +1,65 @@
-# Forge — Profils Budget
+# Forge — Budget Profiles
 
-Référence des allocations modèle/effort par niveau de budget.
+Reference for model/effort allocation per budget level.
 
-## Profil `low` — Tâches simples (petit fix, renommage)
+## Profile `low` — Simple tasks (small fix, rename)
 
-| Phase | Modèle | Effort | Agents |
-|-------|--------|--------|--------|
-| Recherche | Haiku | - | 1 agent solo |
-| Plan | Haiku | faible | - |
-| Exécution | Sonnet | faible | snipper uniquement |
-| Tests | Haiku | - | run + parse |
-| Documentation | Haiku | - | docstrings basiques |
+| Phase | Model | Effort | Agents |
+|-------|-------|--------|--------|
+| Research | Haiku | - | 1 solo agent |
+| Plan | Haiku | low | - |
+| Execute | Sonnet | low | snipper only |
+| Test | Haiku | - | run + parse |
+| Document | Haiku | - | basic docstrings |
 
-**Retry max :** 1
-**Parallélisme recherche :** non
+**Max retries:** 1
+**Research parallelism:** no
 
-## Profil `mid` (défaut) — Features standard
+## Profile `mid` (default) — Standard features
 
-| Phase | Modèle | Effort | Agents |
-|-------|--------|--------|--------|
-| Recherche | Haiku | - | 2-3 agents parallèles |
-| Plan | Sonnet | moyen | - |
-| Exécution | Sonnet | élevé | snipper + file-writer |
-| Tests | Haiku run + Sonnet analyse | moyen | - |
-| Documentation | Sonnet | faible | docstrings + mise à jour docs |
+| Phase | Model | Effort | Agents |
+|-------|-------|--------|--------|
+| Research | Haiku | - | 2-3 parallel agents |
+| Plan | Sonnet | medium | - |
+| Execute | Sonnet | high | snipper + file-writer |
+| Test | Haiku run + Sonnet analysis | medium | - |
+| Document | Sonnet | low | docstrings + update existing docs |
 
-**Retry max :** 3
-**Parallélisme recherche :** oui (si `-w`)
+**Max retries:** 3
+**Research parallelism:** yes (if `-w`)
 
-## Profil `high` — Features complexes et critiques
+## Profile `high` — Complex and critical features
 
-| Phase | Modèle | Effort | Agents |
-|-------|--------|--------|--------|
-| Recherche | Sonnet | - | 3-5 agents parallèles + ultra think |
-| Plan | Opus | moyen | - |
-| Exécution | Opus | élevé | tous sous-agents disponibles |
-| Tests | Haiku run + Opus analyse | élevé | - |
-| Documentation | Sonnet | moyen | docstrings + markdown + schémas Mermaid |
+| Phase | Model | Effort | Agents |
+|-------|-------|--------|--------|
+| Research | Sonnet | - | 3-5 parallel agents + ultra think |
+| Plan | Opus | medium | - |
+| Execute | Opus | high | all available sub-agents |
+| Test | Haiku run + Opus analysis | high | - |
+| Document | Sonnet | medium | docstrings + markdown + Mermaid diagrams |
 
-**Retry max :** 5
-**Parallélisme recherche :** oui (si `-w`)
+**Max retries:** 5
+**Research parallelism:** yes (if `-w`)
 
-## Sous-agents disponibles
+## Available Sub-Agents
 
-| Agent | Modèle | Rôle | Phases |
-|-------|--------|------|--------|
-| `explorer-codebase` | Haiku | Trouve fichiers, retourne chemins + signatures | Recherche |
-| `explorer-docs` | Haiku | Cherche docs, retourne résumé condensé | Recherche |
-| `summarizer` | Haiku | Condense fichiers en résumés structurés | Recherche |
-| `snipper` | Sonnet (faible) | Modifications simples (renommage, imports) | Exécution |
-| `file-writer` | Sonnet (moyen-élevé) | Création de fichiers depuis spec | Exécution |
-| `test-runner` | Haiku | Exécute commandes, parse erreurs | Tests |
-| `error-analyzer` | Sonnet | Diagnostique erreurs, propose fixes ciblés | Tests |
-| `doc-writer` | Sonnet | Rédige documentation depuis brief | Documentation |
+| Agent | Model | Role | Phases |
+|-------|-------|------|--------|
+| `explorer-codebase` | Haiku | Find files, return paths + signatures | Research |
+| `explorer-docs` | Haiku | Search docs, return condensed summary | Research |
+| `summarizer` | Haiku | Condense files into structured summaries | Research |
+| `snipper` | Sonnet (low) | Simple modifications (rename, imports) | Execute |
+| `file-writer` | Sonnet (medium-high) | Create files from spec | Execute |
+| `test-runner` | Haiku | Run commands, parse errors | Test |
+| `error-analyzer` | Sonnet | Diagnose errors, propose targeted fixes | Test |
+| `doc-writer` | Sonnet | Write documentation from brief | Document |
 
-## Dispatch exécution par complexité de tâche
+## Execution Dispatch by Task Complexity
 
-Chaque tâche du plan est taguée avec une complexité qui détermine le sous-agent :
+Each plan task is tagged with a complexity that determines the sub-agent:
 
-| Tag complexité | `low` | `mid` | `high` |
+| Complexity tag | `low` | `mid` | `high` |
 |----------------|-------|-------|--------|
-| `simple` | snipper (Sonnet faible) | snipper (Sonnet faible) | snipper (Sonnet faible) |
-| `moderate` | Sonnet faible | Sonnet élevé | Opus moyen |
-| `complex` | Sonnet faible | Sonnet élevé | Opus élevé |
+| `simple` | snipper (Sonnet low) | snipper (Sonnet low) | snipper (Sonnet low) |
+| `moderate` | Sonnet low | Sonnet high | Opus medium |
+| `complex` | Sonnet low | Sonnet high | Opus high |

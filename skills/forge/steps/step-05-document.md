@@ -1,190 +1,190 @@
 ---
 name: step-05-document
-description: Documentation — docstrings, mise à jour docs, markdown + Mermaid en high
+description: Documentation — docstrings, update existing docs, markdown + Mermaid in high
 prev_step: ./step-04-test.md
 next_step: ./step-06-finish.md
 ---
 
-# Phase 5 : Documentation
+# Phase 5: Document
 
-## RÈGLES :
+## RULES:
 
-- ✅ TOUJOURS ajouter des docstrings/JSDoc aux fonctions modifiées/créées
-- ✅ TOUJOURS mettre à jour les docs existantes si pertinentes
-- ✅ En budget `high` : créer un markdown dédié avec schémas Mermaid
-- 🛑 JAMAIS sur-documenter — être concis et utile
+- ✅ ALWAYS add docstrings/JSDoc to modified/created functions
+- ✅ ALWAYS update existing docs if relevant
+- ✅ In budget `high`: create dedicated markdown with Mermaid diagrams
+- 🛑 NEVER over-document — be concise and useful
 
-## ALLOCATION MODÈLE :
+## MODEL ALLOCATION:
 
 <critical>
-Consulter `budget-profiles.md` :
-- low : Haiku — docstrings basiques uniquement
-- mid : Sonnet effort faible — docstrings + mise à jour docs existantes
-- high : Sonnet effort moyen — docstrings + markdown dédié + schémas Mermaid
+Consult `budget-profiles.md`:
+- low: Haiku — basic docstrings only
+- mid: Sonnet low effort — docstrings + update existing docs
+- high: Sonnet medium effort — docstrings + dedicated markdown + Mermaid diagrams
 </critical>
 
-## RESTAURATION CONTEXTE (mode resume) :
+## CONTEXT RESTORATION (resume mode):
 
 <critical>
-Si chargé via resume :
-1. Lire `{output_dir}/00-context.md` → flags, budget
-2. Lire `{output_dir}/03-execute.md` → ce qui a été implémenté
+If loaded via resume:
+1. Read `{output_dir}/00-context.md` → flags, budget
+2. Read `{output_dir}/03-execute.md` → what was implemented
 </critical>
 
 ---
 
-## SÉQUENCE :
+## SEQUENCE:
 
-### 1. Init save (si save_mode)
+### 1. Init Save (if save_mode)
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "in_progress"
 ```
 
-### 2. Identifier les cibles de documentation
+### 2. Identify Documentation Targets
 
-Depuis les résultats de phase 3 (exécution) :
-- Lister les fonctions/classes créées ou modifiées
-- Identifier les fichiers de doc existants (README, docs/, CHANGELOG)
-- Vérifier si un fichier de doc est déjà lié à la feature
+From phase 3 (execute) results:
+- List functions/classes created or modified
+- Identify existing doc files (README, docs/, CHANGELOG)
+- Check if a doc file already relates to the feature
 
-### 3. Docstrings / JSDoc (TOUS les budgets)
+### 3. Docstrings / JSDoc (ALL budgets)
 
-**Lancer un sous-agent doc-writer** selon le budget :
+**Launch a doc-writer sub-agent** based on budget:
 
-**Budget `low` (model: haiku) :**
+**Budget `low` (model: haiku):**
 ```
-Ajouter des docstrings/JSDoc basiques aux fonctions suivantes :
-{liste des fonctions créées/modifiées avec chemins}
-Format : une ligne de description + @param + @returns
-Ne PAS ajouter de commentaires inline.
-```
-
-**Budget `mid` (model: sonnet, effort: faible) :**
-```
-Ajouter des docstrings/JSDoc aux fonctions suivantes :
-{liste des fonctions avec chemins}
-Format : description + @param + @returns + @throws + @example si utile
-Ne PAS ajouter de commentaires inline superflus.
+Add basic docstrings/JSDoc to the following functions:
+{list of created/modified functions with paths}
+Format: one-line description + @param + @returns
+Do NOT add inline comments.
 ```
 
-**Budget `high` (model: sonnet, effort: moyen) :**
+**Budget `mid` (model: sonnet, effort: low):**
 ```
-Ajouter des docstrings/JSDoc complets aux fonctions suivantes :
-{liste des fonctions avec chemins}
-Format : description + @param + @returns + @throws + @example + @see
-Inclure des exemples d'utilisation pertinents.
+Add docstrings/JSDoc to the following functions:
+{list of functions with paths}
+Format: description + @param + @returns + @throws + @example if useful
+Do NOT add unnecessary inline comments.
 ```
 
-### 4. Mise à jour des docs existantes (mid et high)
+**Budget `high` (model: sonnet, effort: medium):**
+```
+Add comprehensive docstrings/JSDoc to the following functions:
+{list of functions with paths}
+Format: description + @param + @returns + @throws + @example + @see
+Include relevant usage examples.
+```
 
-**Si `{budget}` = `low` :** sauter au step 6
+### 4. Update Existing Docs (mid and high)
 
-Vérifier et mettre à jour :
-- README.md : section pertinente si la feature impacte l'API publique
-- CHANGELOG.md : ajouter une entrée si le fichier existe
-- Docs existantes : mettre à jour les sections touchées par les changements
+**If `{budget}` = `low`:** skip to step 6
 
-### 5. Markdown dédié + Mermaid (high uniquement)
+Check and update:
+- README.md: relevant section if the feature impacts the public API
+- CHANGELOG.md: add entry if the file exists
+- Existing docs: update sections affected by changes
 
-**Si `{budget}` != `high` :** sauter au step 6
+### 5. Dedicated Markdown + Mermaid (high only)
 
-Créer un fichier markdown dédié à la feature :
+**If `{budget}` != `high`:** skip to step 6
+
+Create a dedicated markdown file for the feature:
 
 ```markdown
 # {feature_name}
 
-## Vue d'ensemble
+## Overview
 
-{Description en 2-3 phrases}
+{2-3 sentence description}
 
 ## Architecture
 
 ```mermaid
 graph TD
-    A[Composant A] --> B[Composant B]
+    A[Component A] --> B[Component B]
     B --> C[Service C]
-    C --> D[(Base de données)]
+    C --> D[(Database)]
 ```
 
 ## API
 
 ### `functionName(param: Type): ReturnType`
 
-{Description, paramètres, retour, exemples}
+{Description, parameters, return, examples}
 
-## Flux de données
+## Data Flow
 
 ```mermaid
 sequenceDiagram
-    participant U as Utilisateur
+    participant U as User
     participant A as API
     participant S as Service
     participant D as DB
 
-    U->>A: Requête
-    A->>S: Traitement
-    S->>D: Persistance
-    D-->>S: Résultat
-    S-->>A: Réponse
-    A-->>U: Retour
+    U->>A: Request
+    A->>S: Process
+    S->>D: Persist
+    D-->>S: Result
+    S-->>A: Response
+    A-->>U: Return
 ```
 
 ## Configuration
 
-{Paramètres, variables d'environnement si applicable}
+{Parameters, environment variables if applicable}
 
-## Tests
+## Testing
 
-{Comment tester, commandes, couverture}
+{How to test, commands, coverage}
 ```
 
-Placer le fichier dans le dossier de documentation du projet (docs/, README section, ou à côté du code).
+Place the file in the project's documentation folder (docs/, README section, or alongside the code).
 
-### 6. Résumé de documentation
+### 6. Documentation Summary
 
 ```
-**Documentation terminée**
+**Documentation Complete**
 
-**Docstrings ajoutées :** {count} fonctions
-**Docs mises à jour :** {liste des fichiers ou "aucun"}
-**Markdown créé :** {chemin ou "non (budget != high)"}
-**Schémas Mermaid :** {count ou "non"}
+**Docstrings added:** {count} functions
+**Docs updated:** {file list or "none"}
+**Markdown created:** {path or "no (budget != high)"}
+**Mermaid diagrams:** {count or "no"}
 ```
 
-### 7. Save output (si save_mode)
+### 7. Save Output (if save_mode)
 
-Append à `{output_dir}/05-document.md`.
+Append to `{output_dir}/05-document.md`.
 
 ---
 
-## NEXT STEP :
+## NEXT STEP:
 
 <critical>
-PAS de session boundary — enchaîner vers finish ou terminer.
+NO session boundary — chain to finish or terminate.
 </critical>
 
 ```
-→ Si {branch_mode} = true, committer :
+→ If {branch_mode} = true, commit:
   git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 05 - document"
 
-→ Si save_mode = true :
+→ If save_mode = true:
   bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "complete"
 
-→ SI {pr_mode} = true :
-  Charger ./step-06-finish.md
+→ IF {pr_mode} = true:
+  Load ./step-06-finish.md
 
-→ SINON :
-  Afficher le résumé final du workflow :
+→ OTHERWISE:
+  Display final workflow summary:
   """
   ═══════════════════════════════════════
-    FORGE TERMINÉ : {task_description}
+    FORGE COMPLETE: {task_description}
   ═══════════════════════════════════════
-    Budget : {budget}
-    Phases complétées : 5/5
-    Fichiers modifiés : {count}
-    Tests : ✓/✗
-    Documentation : ✓
+    Budget: {budget}
+    Phases completed: 5/5
+    Files modified: {count}
+    Tests: ✓/✗
+    Documentation: ✓
   ═══════════════════════════════════════
   """
 ```

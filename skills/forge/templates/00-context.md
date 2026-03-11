@@ -1,14 +1,14 @@
 # Forge Task: {{task_id}}
 
-**Créé :** {{timestamp}}
-**Tâche :** {{task_description}}
+**Created:** {{timestamp}}
+**Task:** {{task_description}}
 
 ---
 
 ## Configuration
 
-| Flag | Valeur |
-|------|--------|
+| Flag | Value |
+|------|-------|
 | Auto (`-a`) | {{auto_mode}} |
 | Save (`-s`) | {{save_mode}} |
 | Test (`-t`) | {{test_mode}} |
@@ -18,25 +18,25 @@
 | PR (`-pr`) | {{pr_mode}} |
 | Interactive (`-i`) | {{interactive_mode}} |
 | Budget | {{budget}} |
-| Branche | {{branch_name}} |
+| Branch name | {{branch_name}} |
 
 ---
 
-## Requête utilisateur
+## User Request
 
 ```
 {{original_input}}
 ```
 
-## Documents de référence
+## Reference Documents
 
 {{reference_docs}}
 
 ---
 
-## Progression
+## Progress
 
-| Phase | Statut | Timestamp |
+| Phase | Status | Timestamp |
 |-------|--------|-----------|
 | 00-init | ⏸ Pending | |
 | 01-research | ⏸ Pending | |
@@ -53,9 +53,9 @@
 **feature_name:** {{feature_name}}
 **next_step:** 01
 
-### Critères d'acceptation
+### Acceptance Criteria
 
-_Définis pendant la phase 01-research_
+_Defined during phase 01-research_
 
 ### Step Context
 
@@ -65,6 +65,6 @@ _Brief summaries added as steps complete_
 
 _Surprises, workarounds, and deviations discovered during execution_
 
-### Choix utilisateur
+### User Choices
 
-_Décisions enregistrées aux points de transition interactifs_
+_Decisions recorded at interactive transition points_

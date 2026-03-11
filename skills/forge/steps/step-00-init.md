@@ -1,23 +1,23 @@
 ---
 name: step-00-init
-description: Initialise le workflow Forge — parse flags, détecte la reprise, setup état
+description: Initialize Forge workflow — parse flags, detect resume, setup state
 next_step: ./step-01-research.md
 ---
 
-# Phase 0 : Initialisation
+# Phase 0: Initialization
 
-## RÈGLES D'EXÉCUTION :
+## EXECUTION RULES:
 
-- 🛑 JAMAIS sauter le parsing des flags
-- ✅ TOUJOURS parser TOUS les flags avant toute action
-- 📋 TU ES UN INITIALISEUR, pas un exécuteur
-- 🚫 INTERDIT de charger step-01 avant la fin de l'init
+- 🛑 NEVER skip flag parsing
+- ✅ ALWAYS parse ALL flags before any other action
+- 📋 YOU ARE AN INITIALIZER, not an executor
+- 🚫 FORBIDDEN to load step-01 until init is complete
 
-## SÉQUENCE D'EXÉCUTION :
+## EXECUTION SEQUENCE:
 
-### 1. Parser les flags et l'input
+### 1. Parse Flags and Input
 
-**Step 1a : Charger les défauts**
+**Step 1a: Load defaults**
 
 ```yaml
 auto_mode: false
@@ -31,152 +31,152 @@ interactive_mode: false
 budget: mid
 ```
 
-**Step 1b : Parser l'input utilisateur et overrider les défauts :**
+**Step 1b: Parse user input and override defaults:**
 
 ```
-Enable flags (minuscule - activer) :
-  -a ou --auto         → {auto_mode} = true
-  -s ou --save         → {save_mode} = true
-  -t ou --test         → {test_mode} = true
-  -play ou --playwright → {playwright_mode} = true
-  -w ou --team         → {team_mode} = true
-  -b ou --branch       → {branch_mode} = true
-  -pr ou --pull-request → {pr_mode} = true, {branch_mode} = true
-  -i ou --interactive  → {interactive_mode} = true
+Enable flags (lowercase - turn ON):
+  -a or --auto         → {auto_mode} = true
+  -s or --save         → {save_mode} = true
+  -t or --test         → {test_mode} = true
+  -play or --playwright → {playwright_mode} = true
+  -w or --team         → {team_mode} = true
+  -b or --branch       → {branch_mode} = true
+  -pr or --pull-request → {pr_mode} = true, {branch_mode} = true
+  -i or --interactive  → {interactive_mode} = true
 
-Disable flags (MAJUSCULE - désactiver) :
-  -A ou --no-auto           → {auto_mode} = false
-  -S ou --no-save           → {save_mode} = false
-  -T ou --no-test           → {test_mode} = false
-  -PLAY ou --no-playwright  → {playwright_mode} = false
-  -W ou --no-team           → {team_mode} = false
-  -B ou --no-branch         → {branch_mode} = false
-  -PR ou --no-pull-request  → {pr_mode} = false
-  -I ou --no-interactive    → {interactive_mode} = false
+Disable flags (UPPERCASE - turn OFF):
+  -A or --no-auto           → {auto_mode} = false
+  -S or --no-save           → {save_mode} = false
+  -T or --no-test           → {test_mode} = false
+  -PLAY or --no-playwright  → {playwright_mode} = false
+  -W or --no-team           → {team_mode} = false
+  -B or --no-branch         → {branch_mode} = false
+  -PR or --no-pull-request  → {pr_mode} = false
+  -I or --no-interactive    → {interactive_mode} = false
 
-Budget :
+Budget:
   --budget low   → {budget} = low
   --budget mid   → {budget} = mid
   --budget high  → {budget} = high
 
-Autre :
-  -r ou --resume → {resume_task} = <argument suivant>
-  Reste          → {task_description}
+Other:
+  -r or --resume → {resume_task} = <next argument>
+  Remainder      → {task_description}
 ```
 
-**Step 1c : Auto-enable save_mode en mode pas-à-pas :**
+**Step 1c: Auto-enable save_mode in step-by-step mode:**
 
 ```
-SI {auto_mode} = false ET {save_mode} = false :
+IF {auto_mode} = false AND {save_mode} = false:
     {save_mode} = true
-    (Requis pour la reprise entre sessions)
+    (Required for resume between sessions)
 ```
 
-**Step 1d : Auto-enable test_mode en mode auto :**
+**Step 1d: Auto-enable test_mode in auto mode:**
 
 ```
-SI {auto_mode} = true :
+IF {auto_mode} = true:
     {test_mode} = true
 ```
 
-**Step 1e : Détecter les fichiers de référence dans l'input :**
+**Step 1e: Detect reference files in input:**
 
 ```
-Scanner {task_description} pour des tokens de chemin :
-1. Un token est un chemin si :
-   - Il contient au moins un '/'
-   - ET se termine par .md, .txt, .json, .yaml, .yml
-2. Si le fichier existe : {reference_files} = chemin, retirer du {task_description}
-3. Si {task_description} vide : dériver la description du nom de fichier
-4. Si pas de chemin détecté : {reference_files} = "" (mode normal)
+Scan {task_description} for file path tokens:
+1. A token is a file path if:
+   - It contains at least one '/'
+   - AND ends with a known extension (.md, .txt, .json, .yaml, .yml)
+2. If the file exists: {reference_files} = path, remove from {task_description}
+3. If {task_description} is now empty: derive description from filename
+4. If no file paths detected: {reference_files} = "" (normal mode)
 ```
 
-**Step 1f : Générer feature_name et task_id :**
+**Step 1f: Generate feature_name and task_id:**
 
 ```
-{feature_name} = kebab-case de la description (sans préfixe numérique)
-Exemple : "add user authentication" → "add-user-authentication"
+{feature_name} = kebab-case of description (no number prefix)
+Example: "add user authentication" → "add-user-authentication"
 ```
 
-Générer `{task_id}` maintenant :
+Generate `{task_id}` now:
 
 ```bash
 bash {skill_dir}/scripts/generate-task-id.sh "{feature_name}"
 ```
 
-### 2. Vérifier le mode resume
+### 2. Check Resume Mode
 
 <critical>
-UNIQUEMENT exécuter cette section si {resume_task} est défini.
-Sinon, sauter directement au step 3.
+ONLY execute this section if {resume_task} is set.
+Otherwise, skip directly to step 3.
 </critical>
 
-**Si `{resume_task}` est défini :**
+**If `{resume_task}` is set:**
 
-**Step 2a : Trouver le dossier correspondant :**
+**Step 2a: Find matching task folder:**
 
 ```bash
 ls .claude/output/forge/ | grep "{resume_task}"
 ```
 
-- **Match exact** : utiliser
-- **Match partiel unique** : utiliser
-- **Multiples matchs** : lister et demander
-- **Aucun match** : lister les tâches disponibles
+- **Exact match**: use it
+- **Single partial match**: use it
+- **Multiple matches**: list and ask user to specify
+- **No match**: list available tasks, ask user
 
-**Step 2b : Restaurer l'état depuis `00-context.md` :**
+**Step 2b: Restore state from `00-context.md`:**
 
-1. Lire `{output_dir}/00-context.md`
-2. Restaurer TOUS les flags depuis la table Configuration
-3. Restaurer task info : `{task_id}`, `{task_description}`, `{feature_name}`, `{branch_name}`
-4. Restaurer `{reference_files}`
-5. Restaurer les critères d'acceptation
+1. Read `{output_dir}/00-context.md`
+2. Restore ALL flags from Configuration table
+3. Restore task info: `{task_id}`, `{task_description}`, `{feature_name}`, `{branch_name}`
+4. Restore `{reference_files}`
+5. Restore acceptance criteria
 
-**Step 2c : Appliquer les overrides de la commande courante :**
+**Step 2c: Apply flag overrides from current command:**
 
-Les flags passés avec la commande resume overrident les valeurs stockées.
+Flags passed with the resume command override stored values.
 
-**Step 2d : Déterminer la cible de reprise :**
+**Step 2d: Determine resume target step:**
 
-1. Lire `next_step` du State Snapshot
-2. Si `next_step` = `complete` : vérifier les lignes Pending (ajoutées par override de flags). Sinon → "✓ Workflow terminé."
-3. Si `next_step` pointe vers un step ✓ Terminé : fallback sur la table Progress
-4. ⏳ En cours = crash → redémarrer ce step
+1. Read `next_step` from State Snapshot
+2. If `next_step` = `complete`: check for Pending rows (flag overrides). Otherwise → "✓ Workflow already complete."
+3. If `next_step` points to a ✓ Complete step: fallback to Progress table
+4. ⏳ In Progress = crash → restart that step
 
-**Step 2e : Afficher le résumé et charger le step cible**
+**Step 2e: Show resume summary and load target step**
 
-Puis charger directement le step cible. NE PAS continuer avec les steps 3-5.
+Then load the target step directly. Do NOT continue with fresh init steps 3-5.
 
-### 3. Pré-vérifications
+### 3. Pre-flight Checks
 
 ```bash
-# Vérifier que la description n'est pas vide
+# Check task description is not empty
 if [[ -z "{task_description}" ]]; then
-  echo "Error: Pas de description"
+  echo "Error: No task description provided"
   exit 1
 fi
 
-# Warning changements non-committés
+# Warn about uncommitted changes
 if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
-  echo "⚠ Warning: Changements non-committés détectés"
+  echo "⚠ Warning: Uncommitted changes detected"
 fi
 ```
 
-### 4. Sous-steps optionnels
+### 4. Run Optional Sub-Steps
 
 ```
-SI {interactive_mode} = true :
-  → Charger steps/step-00b-interactive.md
-  → Retour avec flags mis à jour
+IF {interactive_mode} = true:
+  → Load steps/step-00b-interactive.md
+  → Return with updated flags
 
-SI {branch_mode} = true :
-  → Charger steps/step-00b-branch.md
-  → Retour avec {branch_name} défini
+IF {branch_mode} = true:
+  → Load steps/step-00b-branch.md
+  → Return with {branch_name} set
 ```
 
-### 5. Créer la structure output (si save_mode)
+### 5. Create Output Structure (if save_mode)
 
-**Si `{save_mode}` = true :**
+**If `{save_mode}` = true:**
 
 ```bash
 bash {skill_dir}/scripts/setup-templates.sh \
@@ -196,21 +196,21 @@ bash {skill_dir}/scripts/setup-templates.sh \
   "{reference_files}"
 ```
 
-### 6. Marquer init terminé et continuer
+### 6. Mark Init Complete and Proceed
 
-**Si `{save_mode}` = true :**
+**If `{save_mode}` = true:**
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "00" "init" "complete"
 ```
 
-Afficher le résumé COMPACT :
+Show COMPACT summary:
 
 ```
 ✓ FORGE: {task_description}
 
-| Variable | Valeur |
-|----------|--------|
+| Variable | Value |
+|----------|-------|
 | `{task_id}` | 01-kebab-name |
 | `{budget}` | mid |
 | `{auto_mode}` | true/false |
@@ -220,16 +220,16 @@ Afficher le résumé COMPACT :
 | `{team_mode}` | true/false |
 | `{branch_mode}` | true/false |
 | `{pr_mode}` | true/false |
-| `{reference_files}` | chemin ou vide |
+| `{reference_files}` | path or empty |
 
-→ Recherche en cours...
+→ Researching...
 ```
 
 <critical>
-GARDER L'OUTPUT MINIMAL :
-- Une ligne header avec la tâche
-- Une table avec TOUTES les variables
-- Une ligne "→ Recherche en cours..." puis IMMÉDIATEMENT charger step-01
+KEEP OUTPUT MINIMAL:
+- One header line with the task
+- One table with ALL variables
+- One line "→ Researching..." then IMMEDIATELY load step-01
 </critical>
 
-**Puis charger directement step-01-research.md**
+**Then proceed directly to step-01-research.md**

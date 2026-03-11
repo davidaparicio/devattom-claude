@@ -1,10 +1,10 @@
-# Phase 01 : Recherche
+# Phase 01: Research
 
-**Tâche :** {{task_description}}
-**Démarré :** {{timestamp}}
+**Task:** {{task_description}}
+**Started:** {{timestamp}}
 
 ---
 
-## Découverte du contexte
+## Context Discovery
 
-_Les résultats de la recherche seront ajoutés ici..._
+_Research findings will be appended here..._

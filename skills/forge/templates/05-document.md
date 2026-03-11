@@ -1,10 +1,10 @@
-# Phase 05 : Documentation
+# Phase 05: Document
 
-**Tâche :** {{task_description}}
-**Démarré :** {{timestamp}}
+**Task:** {{task_description}}
+**Started:** {{timestamp}}
 
 ---
 
-## Documentation générée
+## Generated Documentation
 
-_La documentation sera ajoutée ici..._
+_Documentation will be appended here..._

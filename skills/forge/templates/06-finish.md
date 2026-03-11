@@ -1,10 +1,10 @@
-# Phase 06 : Finish
+# Phase 06: Finish
 
-**Tâche :** {{task_description}}
-**Démarré :** {{timestamp}}
+**Task:** {{task_description}}
+**Started:** {{timestamp}}
 
 ---
 
-## Création de la Pull Request
+## Pull Request Creation
 
-_Le processus de création PR sera journalisé ici..._
+_PR creation process will be logged here..._

@@ -1,71 +1,71 @@
 ---
 name: step-00b-interactive
-description: Configuration interactive des flags Forge
+description: Interactively configure Forge workflow flags
 returns_to: step-00-init.md
 ---
 
-# Step 0b : Configuration interactive
+# Step 0b: Interactive Configuration
 
-## SÉQUENCE :
+## SEQUENCE:
 
-### 1. Afficher la configuration courante
+### 1. Display Current Configuration
 
 ```
-**Configuration Forge :**
+**Forge Configuration:**
 
-| Flag | Statut | Description |
+| Flag | Status | Description |
 |------|--------|-------------|
-| Auto (`-a`) | {auto_mode ? "✓ ON" : "✗ OFF"} | Aucune pause + tests unitaires |
-| Save (`-s`) | {save_mode ? "✓ ON" : "✗ OFF"} | Sauvegarder les outputs |
-| Test (`-t`) | {test_mode ? "✓ ON" : "✗ OFF"} | Tests unitaires |
-| Playwright (`-play`) | {playwright_mode ? "✓ ON" : "✗ OFF"} | Tests d'intégration |
-| Team (`-w`) | {team_mode ? "✓ ON" : "✗ OFF"} | Recherche parallèle |
-| Branch (`-b`) | {branch_mode ? "✓ ON" : "✗ OFF"} | Branche git |
+| Auto (`-a`) | {auto_mode ? "✓ ON" : "✗ OFF"} | No pauses + unit tests |
+| Save (`-s`) | {save_mode ? "✓ ON" : "✗ OFF"} | Save outputs |
+| Test (`-t`) | {test_mode ? "✓ ON" : "✗ OFF"} | Unit tests |
+| Playwright (`-play`) | {playwright_mode ? "✓ ON" : "✗ OFF"} | Integration tests |
+| Team (`-w`) | {team_mode ? "✓ ON" : "✗ OFF"} | Parallel research |
+| Branch (`-b`) | {branch_mode ? "✓ ON" : "✗ OFF"} | Git branch |
 | PR (`-pr`) | {pr_mode ? "✓ ON" : "✗ OFF"} | Pull request |
-| Budget | {budget} | Allocation modèle |
+| Budget | {budget} | Model allocation |
 ```
 
-### 2. Demander les changements de flags
+### 2. Ask for Flag Changes
 
 ```yaml
 questions:
-  - header: "Configurer"
-    question: "Sélectionner les flags à BASCULER :"
+  - header: "Configure"
+    question: "Select flags to TOGGLE:"
     options:
       - label: "Auto mode"
-        description: "{auto_mode ? 'Désactiver' : 'Activer'} - aucune pause + tests"
+        description: "{auto_mode ? 'Disable' : 'Enable'} - no pauses + tests"
       - label: "Test mode"
-        description: "{test_mode ? 'Désactiver' : 'Activer'} - tests unitaires"
+        description: "{test_mode ? 'Disable' : 'Enable'} - unit tests"
       - label: "Playwright"
-        description: "{playwright_mode ? 'Désactiver' : 'Activer'} - tests intégration"
+        description: "{playwright_mode ? 'Disable' : 'Enable'} - integration tests"
       - label: "Team mode"
-        description: "{team_mode ? 'Désactiver' : 'Activer'} - recherche parallèle"
+        description: "{team_mode ? 'Disable' : 'Enable'} - parallel research"
       - label: "Branch mode"
-        description: "{branch_mode ? 'Désactiver' : 'Activer'} - branche git"
+        description: "{branch_mode ? 'Disable' : 'Enable'} - git branch"
       - label: "PR mode"
-        description: "{pr_mode ? 'Désactiver' : 'Activer'} - créer PR"
+        description: "{pr_mode ? 'Disable' : 'Enable'} - create PR"
     multiSelect: true
 ```
 
-### 3. Demander le budget
+### 3. Ask for Budget
 
 ```yaml
 questions:
   - header: "Budget"
-    question: "Niveau de budget :"
+    question: "Budget level:"
     options:
-      - label: "low — Minimum de tokens"
-        description: "Haiku/Sonnet faible. Pour tâches simples."
-      - label: "mid — Équilibre (défaut)"
-        description: "Sonnet moyen/élevé. Bon rapport qualité/coût."
-      - label: "high — Qualité maximale"
-        description: "Opus/Sonnet élevé. Features complexes."
+      - label: "low — Minimum tokens"
+        description: "Haiku/Sonnet low. For simple tasks."
+      - label: "mid — Balance (default)"
+        description: "Sonnet medium/high. Good quality/cost ratio."
+      - label: "high — Maximum quality"
+        description: "Opus/Sonnet high. Complex features."
     multiSelect: false
 ```
 
-### 4. Appliquer et afficher
+### 4. Apply and Display
 
-Basculer les flags sélectionnés. Règles spéciales :
-- PR mode activé → branch mode activé automatiquement
+Toggle selected flags. Special rules:
+- PR mode enabled → branch mode auto-enabled
 
-Afficher la configuration finale et retourner à step-00-init.md.
+Show final configuration and return to step-00-init.md.

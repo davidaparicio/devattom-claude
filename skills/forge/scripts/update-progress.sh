@@ -1,12 +1,12 @@
 #!/bin/bash
-# Forge — Met à jour la table de progression dans 00-context.md
+# Forge — Update progress table in 00-context.md
 
 set -e
 
 TASK_ID="$1"
 STEP_NUMBER="$2"
 STEP_NAME="$3"
-STATUS="$4"  # "in_progress", "complete", ou "skip"
+STATUS="$4"  # "in_progress", "complete", or "skip"
 
 if [[ -z "$TASK_ID" ]] || [[ -z "$STEP_NUMBER" ]] || [[ -z "$STEP_NAME" ]] || [[ -z "$STATUS" ]]; then
     echo "Usage: $0 <task_id> <step_number> <step_name> <status>"
@@ -17,20 +17,20 @@ PROJECT_ROOT=$(pwd)
 CONTEXT_FILE="${PROJECT_ROOT}/.claude/output/forge/${TASK_ID}/00-context.md"
 
 if [[ ! -f "$CONTEXT_FILE" ]]; then
-    echo "Error: Fichier contexte introuvable : $CONTEXT_FILE" >&2
+    echo "Error: Context file not found: $CONTEXT_FILE" >&2
     exit 1
 fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 if [[ "$STATUS" == "in_progress" ]]; then
-    STATUS_SYMBOL="⏳ En cours"
+    STATUS_SYMBOL="⏳ In Progress"
 elif [[ "$STATUS" == "complete" ]]; then
-    STATUS_SYMBOL="✓ Terminé"
+    STATUS_SYMBOL="✓ Complete"
 elif [[ "$STATUS" == "skip" ]]; then
     STATUS_SYMBOL="⏭ Skip"
 else
-    echo "Error: Statut invalide. Utiliser 'in_progress', 'complete', ou 'skip'" >&2
+    echo "Error: Invalid status. Use 'in_progress', 'complete', or 'skip'" >&2
     exit 1
 fi
 
@@ -41,7 +41,7 @@ awk -v step="${STEP_NUMBER}-${STEP_NAME}" \
     -v timestamp="$TIMESTAMP" '
 BEGIN { in_table = 0; found = 0 }
 {
-    if ($0 ~ /^## Progression/) {
+    if ($0 ~ /^## Progress/) {
         in_table = 1
         print $0
         next
@@ -61,12 +61,12 @@ BEGIN { in_table = 0; found = 0 }
 }
 END {
     if (!found) {
-        print "Warning: Step introuvable dans la table" > "/dev/stderr"
+        print "Warning: Step not found in progress table" > "/dev/stderr"
     }
 }
 ' "$CONTEXT_FILE" > "$TEMP_FILE"
 
 mv "$TEMP_FILE" "$CONTEXT_FILE"
 
-echo "✓ Progression : ${STEP_NUMBER}-${STEP_NAME} → ${STATUS_SYMBOL}"
+echo "✓ Progress: ${STEP_NUMBER}-${STEP_NAME} → ${STATUS_SYMBOL}"
 exit 0

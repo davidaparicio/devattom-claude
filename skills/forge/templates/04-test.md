@@ -1,10 +1,10 @@
-# Phase 04 : Tests
+# Phase 04: Test
 
-**Tâche :** {{task_description}}
-**Démarré :** {{timestamp}}
+**Task:** {{task_description}}
+**Started:** {{timestamp}}
 
 ---
 
-## Résultats des tests
+## Test Results
 
-_Les résultats seront ajoutés ici..._
+_Results will be appended here..._

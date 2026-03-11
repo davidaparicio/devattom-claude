@@ -1,10 +1,10 @@
-# Phase 02 : Plan
+# Phase 02: Plan
 
-**Tâche :** {{task_description}}
-**Démarré :** {{timestamp}}
+**Task:** {{task_description}}
+**Started:** {{timestamp}}
 
 ---
 
-## Plan d'implémentation
+## Implementation Plan
 
-_Le plan sera rédigé ici..._
+_The plan will be written here..._

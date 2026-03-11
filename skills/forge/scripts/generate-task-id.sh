@@ -1,8 +1,8 @@
 #!/bin/bash
-# Forge — Génère un task_id unique avec numéro auto-incrémenté
+# Forge — Generate a unique task_id with auto-incremented number
 #
 # Usage: generate-task-id.sh "feature-name"
-# Output: NN-feature-name (ex: 01-add-auth-middleware)
+# Output: NN-feature-name (e.g., 01-add-auth-middleware)
 
 set -e
 
@@ -16,7 +16,7 @@ fi
 PROJECT_ROOT=$(pwd)
 FORGE_OUTPUT_DIR="${PROJECT_ROOT}/.claude/output/forge"
 
-# Trouver le prochain numéro disponible
+# Find next available number
 NEXT_NUM=1
 if [[ -d "$FORGE_OUTPUT_DIR" ]]; then
     LAST_NUM=$(ls -1 "$FORGE_OUTPUT_DIR" 2>/dev/null | grep -oP '^\d+' | sort -n | tail -1)
@@ -25,7 +25,7 @@ if [[ -d "$FORGE_OUTPUT_DIR" ]]; then
     fi
 fi
 
-# Formater avec zéro-padding
+# Format with zero-padding
 TASK_ID=$(printf "%02d-%s" "$NEXT_NUM" "$FEATURE_NAME")
 
 echo "$TASK_ID"

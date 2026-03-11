@@ -1,264 +1,264 @@
 ---
 name: forge
-description: Workflow token-efficient en 5 phases (Research-Plan-Execute-Test-Document) avec allocation intelligente des modèles par budget. Optimisé pour les abonnements Pro.
+description: Token-efficient workflow in 5 phases (Research-Plan-Execute-Test-Document) with intelligent model allocation by budget. Optimized for Pro subscriptions.
 argument-hint: "[-a] [-s] [-t] [-b] [-pr] [-play] [-w] [-i] [--budget low|mid|high] [-r <task-id>] <task description>"
 ---
 
 <objective>
-Exécuter des workflows d'implémentation structurés avec une consommation de tokens optimisée. Forge utilise un système de budget (low/mid/high) pour allouer le bon modèle et le bon niveau d'effort à chaque phase.
+Execute structured implementation workflows with optimized token consumption. Forge uses a budget system (low/mid/high) to allocate the right model and effort level to each phase.
 </objective>
 
 <quick_start>
-**Mode pas-à-pas (défaut) :** Pause après recherche et plan. Reprise avec `/forge -r`.
+**Step-by-step mode (default):** Pauses after research and plan. Resume with `/forge -r`.
 
 ```bash
 /forge add authentication middleware
-# → Phase 1 (recherche) → pause
+# → Phase 1 (research) → pause
 # → /forge -r 01-add-authentication-middleware
 # → Phase 2 (plan) → pause
 # → /forge -r 01-add-authentication-middleware
-# → Phases 3-4-5 s'enchaînent
+# → Phases 3-4-5 chain automatically
 ```
 
-**Mode autonome :** Tout s'enchaîne sans pause.
+**Autonomous mode:** Everything chains without pause.
 
 ```bash
 /forge -a implement user registration
 ```
 
-**Avec tests et PR :**
+**With tests and PR:**
 
 ```bash
 /forge -a -t -pr add login page
 ```
 
-**Budget élevé (feature complexe) :**
+**High budget (complex feature):**
 
 ```bash
 /forge -a --budget high implement payment system
 ```
 
-**Flags :**
+**Flags:**
 
-- `-a` (auto) : Aucune pause + active les tests unitaires
-- `-t` (test) : Crée et exécute les tests unitaires
-- `-play` (playwright) : Tests d'intégration via MCP Playwright
-- `-s` (save) : Sauvegarde outputs (auto-activé en mode pas-à-pas)
-- `-b` (branch) : Vérifie/crée une branche git
-- `-pr` (pull-request) : Crée une PR à la fin
-- `-w` (team) : Agents parallèles sur la recherche
-- `--budget` : Allocation modèle (low/mid/high, défaut: mid)
+- `-a` (auto): No pauses + enables unit tests
+- `-t` (test): Create and run unit tests
+- `-play` (playwright): Integration tests via MCP Playwright
+- `-s` (save): Save outputs (auto-enabled in step-by-step mode)
+- `-b` (branch): Verify/create git branch
+- `-pr` (pull-request): Create PR at the end
+- `-w` (team): Parallel agents on research phase
+- `--budget`: Model allocation (low/mid/high, default: mid)
 
-Voir `<parameters>` pour la liste complète.
+See `<parameters>` for the full list.
 </quick_start>
 
 <parameters>
 
 <flags>
-**Enable flags (activer) :**
+**Enable flags:**
 | Short | Long | Description |
 |-------|------|-------------|
-| `-a` | `--auto` | Mode autonome : aucune pause, active les tests unitaires |
-| `-s` | `--save` | Sauvegarde outputs dans `.claude/output/forge/` |
-| `-t` | `--test` | Crée et exécute les tests unitaires |
-| `-play` | `--playwright` | Tests d'intégration via MCP Playwright |
-| `-w` | `--team` | Agents parallèles sur la phase recherche |
-| `-r` | `--resume` | Reprendre une tâche précédente |
-| `-b` | `--branch` | Vérifie/crée une branche git |
-| `-pr` | `--pull-request` | Crée une PR à la fin (active `-b`) |
-| `-i` | `--interactive` | Configuration interactive des flags |
+| `-a` | `--auto` | Autonomous mode: no pauses, enables unit tests |
+| `-s` | `--save` | Save outputs to `.claude/output/forge/` |
+| `-t` | `--test` | Create and run unit tests |
+| `-play` | `--playwright` | Integration tests via MCP Playwright |
+| `-w` | `--team` | Parallel agents on research phase |
+| `-r` | `--resume` | Resume a previous task |
+| `-b` | `--branch` | Verify/create git branch |
+| `-pr` | `--pull-request` | Create PR at the end (enables `-b`) |
+| `-i` | `--interactive` | Interactive flag configuration |
 
-**Disable flags (désactiver) :**
+**Disable flags:**
 | Short | Long | Description |
 |-------|------|-------------|
-| `-A` | `--no-auto` | Désactive le mode auto |
-| `-S` | `--no-save` | Désactive la sauvegarde |
-| `-T` | `--no-test` | Désactive les tests unitaires |
-| `-PLAY` | `--no-playwright` | Désactive Playwright |
-| `-W` | `--no-team` | Désactive le mode team |
-| `-B` | `--no-branch` | Désactive le mode branche |
-| `-PR` | `--no-pull-request` | Désactive la création PR |
-| `-I` | `--no-interactive` | Désactive le mode interactif |
+| `-A` | `--no-auto` | Disable auto mode |
+| `-S` | `--no-save` | Disable save mode |
+| `-T` | `--no-test` | Disable unit tests |
+| `-PLAY` | `--no-playwright` | Disable Playwright |
+| `-W` | `--no-team` | Disable team mode |
+| `-B` | `--no-branch` | Disable branch mode |
+| `-PR` | `--no-pull-request` | Disable PR creation |
+| `-I` | `--no-interactive` | Disable interactive mode |
 
-**Budget :**
+**Budget:**
 | Flag | Description |
 |------|-------------|
-| `--budget low` | Haiku/Sonnet faible — tâches simples, minimum de tokens |
-| `--budget mid` | Sonnet moyen/élevé — équilibre qualité/coût (défaut) |
-| `--budget high` | Opus/Sonnet élevé — features complexes et critiques |
+| `--budget low` | Haiku/Sonnet low — simple tasks, minimum tokens |
+| `--budget mid` | Sonnet medium/high — quality/cost balance (default) |
+| `--budget high` | Opus/Sonnet high — complex and critical features |
 </flags>
 
 <examples>
 ```bash
-# Basique
+# Basic
 /forge add auth middleware
 
-# Autonome (tout s'enchaîne, tests unitaires inclus)
+# Autonomous (chains everything, unit tests included)
 /forge -a add auth middleware
 
-# Avec PR
+# With PR
 /forge -a -pr add auth middleware
 
-# Budget élevé pour feature complexe
+# High budget for complex feature
 /forge -a --budget high implement payment system
 
-# Tests d'intégration Playwright
+# Playwright integration tests
 /forge -a -play add checkout flow
 
-# Recherche parallèle (team)
+# Parallel research (team)
 /forge -w -a implement dashboard
 
-# Reprendre une tâche
+# Resume a task
 /forge -r 01-auth-middleware
-/forge -r 01  # Match partiel
+/forge -r 01  # Partial match
 
-# Reprendre avec override de flag
+# Resume with flag override
 /forge -a -r 01
 
-# Configuration interactive
+# Interactive configuration
 /forge -i add auth middleware
 
-# Budget minimal
+# Minimal budget
 /forge --budget low fix typo in header
 ```
 </examples>
 
 <parsing_rules>
-**Parsing des flags :**
+**Flag parsing:**
 
-1. Défauts chargés depuis `steps/step-00-init.md` section `<defaults>`
-2. Flags CLI overrident les défauts (enable minuscule, disable MAJUSCULE)
-3. Flags retirés de l'input, le reste = `{task_description}`
-4. Task ID généré en `NN-kebab-case-description`
+1. Defaults loaded from `steps/step-00-init.md` `<defaults>` section
+2. CLI flags override defaults (enable lowercase, disable UPPERCASE)
+3. Flags removed from input, remainder = `{task_description}`
+4. Task ID generated as `NN-kebab-case-description`
 
-Algorithme détaillé dans `steps/step-00-init.md`.
+Detailed algorithm in `steps/step-00-init.md`.
 </parsing_rules>
 
 </parameters>
 
 <output_structure>
-**Quand `{save_mode}` = true :**
+**When `{save_mode}` = true:**
 
-Outputs sauvegardés dans le répertoire PROJET :
+Outputs saved in the PROJECT directory:
 ```
 .claude/output/forge/{task-id}/
-├── 00-context.md       # Configuration, progression, état
-├── 01-research.md      # Résultats de la recherche
-├── 02-plan.md          # Plan d'implémentation
-├── 03-execute.md       # Log d'exécution
-├── 04-test.md          # Résultats des tests
-├── 05-document.md      # Documentation générée
-└── 06-finish.md        # Détails PR (si -pr)
+├── 00-context.md       # Configuration, progress, state
+├── 01-research.md      # Research findings
+├── 02-plan.md          # Implementation plan
+├── 03-execute.md       # Execution log
+├── 04-test.md          # Test results
+├── 05-document.md      # Generated documentation
+└── 06-finish.md        # PR details (if -pr)
 ```
 </output_structure>
 
 <resume_workflow>
-**Mode reprise (`-r {task-id}`) :**
+**Resume mode (`-r {task-id}`):**
 
-1. **Trouver le dossier :** `ls .claude/output/forge/ | grep {resume_task}`
-2. **Restaurer l'état :** Lire `00-context.md` → flags, task info, critères d'acceptation
-3. **Appliquer overrides :** Les flags passés avec `-r` overrident les valeurs stockées
-4. **Trouver la cible :** Lire `next_step` du State Snapshot
-5. **Charger le step cible**
+1. **Find folder:** `ls .claude/output/forge/ | grep {resume_task}`
+2. **Restore state:** Read `00-context.md` → flags, task info, acceptance criteria
+3. **Apply overrides:** Flags passed with `-r` override stored values
+4. **Find target:** Read `next_step` from State Snapshot
+5. **Load target step**
 
-Support du match partiel (ex: `-r 01` trouve `01-add-auth-middleware`).
+Supports partial matching (e.g., `-r 01` finds `01-add-auth-middleware`).
 </resume_workflow>
 
 <workflow>
-**Flux standard :**
-1. Parse flags et description
-2. Si `-r` : restaurer état et charger step cible
-3. Si `-s` : créer dossier output et 00-context.md
-4. Phase 1 — Recherche (step-01-research.md) → **PAUSE**
+**Standard flow:**
+1. Parse flags and description
+2. If `-r`: restore state and load target step
+3. If `-s`: create output folder and 00-context.md
+4. Phase 1 — Research (step-01-research.md) → **PAUSE**
 5. Phase 2 — Plan (step-02-plan.md) → **PAUSE**
-6. Phase 3 — Exécution (step-03-execute.md) → enchaîne
-7. Phase 4 — Tests (step-04-test.md) → enchaîne
-8. Phase 5 — Documentation (step-05-document.md) → enchaîne
-9. Si `-pr` : Finish (step-06-finish.md)
+6. Phase 3 — Execute (step-03-execute.md) → chains
+7. Phase 4 — Test (step-04-test.md) → chains
+8. Phase 5 — Document (step-05-document.md) → chains
+9. If `-pr`: Finish (step-06-finish.md)
 
-**Sessions :**
-- `auto_mode=false` (défaut) : Pause après recherche et après plan. Phases 3-4-5 s'enchaînent.
-- `auto_mode=true` (`-a`) : Tout s'enchaîne sans pause.
+**Sessions:**
+- `auto_mode=false` (default): Pause after research and after plan. Phases 3-4-5 chain.
+- `auto_mode=true` (`-a`): Everything chains without pause.
 </workflow>
 
 <state_variables>
-**Persistent à travers toutes les phases :**
+**Persisted across all phases:**
 
 | Variable | Type | Description |
 |----------|------|-------------|
-| `{task_description}` | string | Ce qu'il faut implémenter |
-| `{feature_name}` | string | Nom kebab-case sans numéro |
-| `{task_id}` | string | Identifiant complet (ex: `01-add-auth`) |
-| `{acceptance_criteria}` | list | Critères de succès |
-| `{auto_mode}` | boolean | Aucune pause, active tests unitaires |
-| `{save_mode}` | boolean | Sauvegarder les outputs |
-| `{test_mode}` | boolean | Créer les tests unitaires |
-| `{playwright_mode}` | boolean | Tests d'intégration Playwright |
-| `{team_mode}` | boolean | Agents parallèles sur la recherche |
-| `{branch_mode}` | boolean | Vérifier/créer branche git |
-| `{pr_mode}` | boolean | Créer PR à la fin |
-| `{interactive_mode}` | boolean | Config interactive |
+| `{task_description}` | string | What to implement |
+| `{feature_name}` | string | Kebab-case name without number |
+| `{task_id}` | string | Full identifier (e.g., `01-add-auth`) |
+| `{acceptance_criteria}` | list | Success criteria |
+| `{auto_mode}` | boolean | No pauses, enables unit tests |
+| `{save_mode}` | boolean | Save outputs |
+| `{test_mode}` | boolean | Create unit tests |
+| `{playwright_mode}` | boolean | Playwright integration tests |
+| `{team_mode}` | boolean | Parallel agents on research |
+| `{branch_mode}` | boolean | Verify/create git branch |
+| `{pr_mode}` | boolean | Create PR at the end |
+| `{interactive_mode}` | boolean | Interactive config |
 | `{budget}` | string | low / mid / high |
-| `{next_step}` | string | Prochaine phase à exécuter |
-| `{reference_files}` | string | Chemin vers doc de référence |
-| `{resume_task}` | string | Task ID à reprendre |
-| `{output_dir}` | string | Chemin vers le dossier output |
-| `{branch_name}` | string | Nom de la branche créée |
+| `{next_step}` | string | Next phase to execute |
+| `{reference_files}` | string | Path to reference document |
+| `{resume_task}` | string | Task ID to resume |
+| `{output_dir}` | string | Path to output folder |
+| `{branch_name}` | string | Created branch name |
 </state_variables>
 
 <entry_point>
 
-**PREMIÈRE ACTION :** Charger `steps/step-00-init.md`
+**FIRST ACTION:** Load `steps/step-00-init.md`
 
-Step 00 gère :
-- Parsing des flags
-- Détection du mode resume
-- Création du dossier output (si save_mode)
-- Initialisation des variables d'état
+Step 00 handles:
+- Flag parsing
+- Resume mode detection
+- Output folder creation (if save_mode)
+- State variable initialization
 
-Après initialisation, step-00 charge step-01-research.md.
+After initialization, step-00 loads step-01-research.md.
 
 </entry_point>
 
 <step_files>
-**Chargement progressif — un seul step à la fois :**
+**Progressive loading — one step at a time:**
 
-| Step | Fichier | Objectif |
-|------|---------|----------|
-| 00 | `steps/step-00-init.md` | Parse flags, crée output, initialise état |
-| 00b | `steps/step-00b-branch.md` | Vérification/création branche (si branch_mode) |
-| 00b | `steps/step-00b-interactive.md` | Config interactive (si interactive_mode) |
-| 01 | `steps/step-01-research.md` | Recherche contextuelle avec ultra think |
-| 01b | `steps/step-01b-team-research.md` | Recherche parallèle (si team_mode) |
-| 02 | `steps/step-02-plan.md` | Planification fichier par fichier |
-| 03 | `steps/step-03-execute.md` | Exécution du plan avec dispatch intelligent |
-| 04 | `steps/step-04-test.md` | Linting + typecheck + tests unitaires/intégration |
-| 05 | `steps/step-05-document.md` | Documentation (docstrings + markdown en high) |
-| 06 | `steps/step-06-finish.md` | Création PR (si pr_mode) |
+| Step | File | Purpose |
+|------|------|---------|
+| 00 | `steps/step-00-init.md` | Parse flags, create output, initialize state |
+| 00b | `steps/step-00b-branch.md` | Branch verification/creation (if branch_mode) |
+| 00b | `steps/step-00b-interactive.md` | Interactive config (if interactive_mode) |
+| 01 | `steps/step-01-research.md` | Contextual research with ultra think |
+| 01b | `steps/step-01b-team-research.md` | Parallel research (if team_mode) |
+| 02 | `steps/step-02-plan.md` | File-by-file planning |
+| 03 | `steps/step-03-execute.md` | Plan execution with intelligent dispatch |
+| 04 | `steps/step-04-test.md` | Linting + typecheck + unit/integration tests |
+| 05 | `steps/step-05-document.md` | Documentation (docstrings + markdown in high) |
+| 06 | `steps/step-06-finish.md` | PR creation (if pr_mode) |
 </step_files>
 
 <execution_rules>
 
-- **Charger un step à la fois** — seul le step courant est en mémoire
-- **ULTRA THINK** en phase recherche (phase la plus importante)
-- **Persister les variables d'état** à travers toutes les phases
-- **Suivre la directive next_step** à la fin de chaque step
-- **Sauvegarder les outputs** si `{save_mode}` = true
-- **Allocation modèle par budget** — consulter `budget-profiles.md` pour chaque phase
-- **Session boundary :** 2 pauses (après recherche et après plan) sauf en auto_mode
-- **Per-step commits :** Quand `branch_mode=true`, les phases code (03, 04) commitent automatiquement
-- **Sous-agents spécialisés :** Dispatcher au bon modèle selon la complexité de la tâche
+- **Load one step at a time** — only the current step is in memory
+- **ULTRA THINK** during research phase (most important phase)
+- **Persist state variables** across all phases
+- **Follow next_step directive** at the end of each step
+- **Save outputs** if `{save_mode}` = true
+- **Model allocation by budget** — consult `budget-profiles.md` for each phase
+- **Session boundary:** 2 pauses (after research and after plan) except in auto_mode
+- **Per-step commits:** When `branch_mode=true`, code phases (03, 04) auto-commit
+- **Specialized sub-agents:** Dispatch to the right model based on task complexity
 
 </execution_rules>
 
 <success_criteria>
 
-- Chaque phase chargée progressivement
-- Allocation modèle respectée selon le budget
-- Tests de linting/typecheck passants
-- Tests unitaires passants (si activés)
-- Tests Playwright passants (si activés)
-- Documentation générée
-- Outputs sauvegardés (si save_mode)
+- Each phase loaded progressively
+- Model allocation respected per budget
+- Linting/typecheck tests passing
+- Unit tests passing (if enabled)
+- Playwright tests passing (if enabled)
+- Documentation generated
+- Outputs saved (if save_mode)
 
 </success_criteria>

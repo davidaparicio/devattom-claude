@@ -1,111 +1,111 @@
 ---
 name: step-01b-team-research
-description: Recherche parallèle via Agent Teams — version team de la phase 1
+description: Parallel research via Agent Teams — team version of phase 1
 next_step: ./step-02-plan.md
 ---
 
-# Phase 1b : Recherche parallèle (Team Mode)
+# Phase 1b: Parallel Research (Team Mode)
 
-## RÈGLES :
+## RULES:
 
-- 🛑 JAMAIS planifier — phase 2
-- ✅ LANCER tous les agents en UNE réponse
-- ✅ Chaque agent retourne un RÉSUMÉ COMPACT
-- 🧠 ULTRA THINK avant le lancement
+- 🛑 NEVER plan — that's phase 2
+- ✅ LAUNCH all agents in ONE response
+- ✅ Each agent returns a COMPACT SUMMARY
+- 🧠 ULTRA THINK before launching
 
-## RESTAURATION CONTEXTE (mode resume) :
+## CONTEXT RESTORATION (resume mode):
 
 <critical>
-Si chargé via resume : lire `{output_dir}/00-context.md` puis procéder.
+If loaded via resume: read `{output_dir}/00-context.md` then proceed.
 </critical>
 
 ---
 
-## SÉQUENCE :
+## SEQUENCE:
 
-### 1. Init save (si save_mode)
+### 1. Init Save (if save_mode)
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "01" "research" "in_progress"
 ```
 
-### 2. Lire les documents de référence (si présents)
+### 2. Read Reference Documents (if any)
 
-Si `{reference_files}` n'est pas vide : lire le fichier et extraire les spécifications.
+If `{reference_files}` is not empty: read and extract specifications.
 
-### 3. ULTRA THINK : Évaluer la complexité et choisir les agents
+### 3. ULTRA THINK: Evaluate Complexity and Choose Agents
 
-Consulter `budget-profiles.md` pour le profil `{budget}`.
+Consult `budget-profiles.md` for the `{budget}` profile.
 
-### 4. Lancer les agents en parallèle
+### 4. Launch Agents in Parallel
 
-**Agents à lancer selon budget :**
+**Agents to launch by budget:**
 
-**Budget `mid` — 2-3 agents Haiku :**
+**Budget `mid` — 2-3 Haiku agents:**
 
 ```
 Agent "explorer-codebase" (model: haiku, subagent_type: Explore):
-  "Explorer le codebase pour : {task_description}
-   Retourner UNIQUEMENT :
-   1. Chemins de fichiers avec numéros de ligne
-   2. Signatures de fonctions/classes pertinentes
-   3. Patterns utilisés pour des features similaires
-   NE PAS retourner le contenu complet des fichiers."
+  "Explore the codebase for: {task_description}
+   Return ONLY:
+   1. File paths with line numbers
+   2. Relevant function/class signatures
+   3. Patterns used for similar features
+   Do NOT return full file contents."
 
 Agent "explorer-docs" (model: haiku, subagent_type: Explore):
-  "Rechercher la documentation pour les bibliothèques liées à : {task_description}
-   Retourner un résumé condensé :
-   1. APIs pertinentes avec exemples courts
-   2. Configuration nécessaire
-   3. Pièges connus"
+  "Search documentation for libraries related to: {task_description}
+   Return a condensed summary:
+   1. Relevant APIs with short examples
+   2. Required configuration
+   3. Known pitfalls"
 
-Agent "summarizer-web" (model: haiku, subagent_type: websearch) [optionnel]:
-  "Rechercher les bonnes pratiques pour : {specific_question}
-   Retourner les 3-5 points clés uniquement."
+Agent "summarizer-web" (model: haiku, subagent_type: websearch) [optional]:
+  "Search best practices for: {specific_question}
+   Return the 3-5 key points only."
 ```
 
-**Budget `high` — 3-5 agents Sonnet :**
+**Budget `high` — 3-5 Sonnet agents:**
 
 ```
 Agent "explorer-codebase-deep" (model: sonnet, subagent_type: Explore):
-  "Exploration approfondie du codebase pour : {task_description}
-   Retourner : fichiers, patterns, architecture, dépendances."
+  "Deep codebase exploration for: {task_description}
+   Return: files, patterns, architecture, dependencies."
 
 Agent "explorer-codebase-tests" (model: sonnet, subagent_type: Explore):
-  "Trouver les patterns de test existants pour le domaine : {domain}
-   Retourner : frameworks, conventions, fixtures, mocks."
+  "Find existing test patterns for domain: {domain}
+   Return: frameworks, conventions, fixtures, mocks."
 
 Agent "explorer-docs" (model: sonnet, subagent_type: explore-docs):
-  "Documentation détaillée via Context7 pour : {libraries}
-   Retourner : APIs, exemples, configuration, migration notes."
+  "Detailed documentation via Context7 for: {libraries}
+   Return: APIs, examples, configuration, migration notes."
 
 Agent "researcher-web" (model: sonnet, subagent_type: websearch):
-  "Recherche approfondie : {specific_questions}
-   Retourner : approches, comparaisons, pièges, patterns."
+  "Deep research: {specific_questions}
+   Return: approaches, comparisons, pitfalls, patterns."
 
-Agent "analyzer-architecture" (model: sonnet, subagent_type: Explore) [optionnel]:
-  "Analyser l'architecture autour de : {integration_points}
-   Retourner : dépendances, interfaces, contracts, contraintes."
+Agent "analyzer-architecture" (model: sonnet, subagent_type: Explore) [optional]:
+  "Analyze architecture around: {integration_points}
+   Return: dependencies, interfaces, contracts, constraints."
 ```
 
 <critical>
-TOUS les agents lancés en UNE SEULE réponse.
-Chaque prompt demande explicitement un RÉSUMÉ — pas de dump de fichiers.
+ALL agents launched in ONE response.
+Each prompt explicitly requests a SUMMARY — no file dumps.
 </critical>
 
-### 5. Agréger et synthétiser
+### 5. Aggregate and Synthesize
 
-Combiner les résultats des agents en un document structuré :
-- Exigences de la tâche
-- Contexte du codebase (fichiers, patterns, utilitaires)
-- Documentation et recherche
-- Critères d'acceptation inférés
+Combine agent results into a structured document:
+- Task requirements
+- Codebase context (files, patterns, utilities)
+- Documentation and research
+- Inferred acceptance criteria
 
-### 6. Save et session boundary
+### 6. Save and Session Boundary
 
-Identique à step-01-research.md — append à `01-research.md`, puis :
+Same as step-01-research.md — append to `01-research.md`, then:
 
 ```
-SI auto_mode = true : charger ./step-02-plan.md
-SI auto_mode = false : session boundary → STOP
+IF auto_mode = true: load ./step-02-plan.md
+IF auto_mode = false: session boundary → STOP
 ```
