@@ -66,14 +66,10 @@ function getGitPart(cwd: string | undefined): string {
 }
 
 function getTokensPart(ctx: ContextWindow | undefined): string {
-  if (!ctx?.used_percentage) return "ctx: en attente";
+  if (!ctx?.used_percentage) return "session: en attente";
 
   const usedInt = Math.round(ctx.used_percentage);
-  const totalIn = ctx.total_input_tokens ?? 0;
-  const totalOut = ctx.total_output_tokens ?? 0;
-  const totalK = Math.floor((totalIn + totalOut) / 1000);
-
-  return `ctx:${usedInt}% | session:${totalK}k tkns`;
+  return `session:${usedInt}%`;
 }
 
 // --- Main ---
