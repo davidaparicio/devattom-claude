@@ -103,7 +103,9 @@ Update state snapshot: `next_step: complete`
 
 ### 7. Cleanup (if cleanup_mode)
 
+<critical>
+IF {cleanup_mode} = true, YOU MUST run this command with the Bash tool — this is NOT optional:
+```bash
+rm -rf {output_dir}
 ```
-IF {cleanup_mode} = true:
-  bash rm -rf {output_dir}
-```
+</critical>

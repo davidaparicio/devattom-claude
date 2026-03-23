@@ -65,12 +65,13 @@ Other:
   Remainder      → {task_description}
 ```
 
-**Step 1c: Auto-enable save_mode in step-by-step mode:**
+**Step 1c: Auto-enable save_mode and cleanup_mode in step-by-step mode:**
 
 ```
 IF {auto_mode} = false AND {save_mode} = false:
     {save_mode} = true
-    (Required for resume between sessions)
+    {cleanup_mode} = true
+    (Required for resume between sessions — auto-suppression en fin de workflow car save non demandé explicitement)
 ```
 
 **Step 1d: Auto-enable test_mode in auto mode:**

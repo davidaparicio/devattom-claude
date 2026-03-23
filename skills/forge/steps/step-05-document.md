@@ -164,29 +164,36 @@ Append to `{output_dir}/05-document.md`.
 NO session boundary — chain to finish or terminate.
 </critical>
 
+If {branch_mode} = true, run:
+```bash
+git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 05 - document"
 ```
-→ If {branch_mode} = true, commit:
-  git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 05 - document"
 
-→ If save_mode = true:
-  bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "complete"
+If save_mode = true, run:
+```bash
+bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "complete"
+```
 
-→ IF {pr_mode} = true:
-  Load ./step-06-finish.md
+If {pr_mode} = true: Load ./step-06-finish.md
 
-→ OTHERWISE:
-  IF {cleanup_mode} = true:
-    bash rm -rf {output_dir}
-  Display final workflow summary:
-  """
-  ═══════════════════════════════════════
-    FORGE COMPLETE: {task_description}
-  ═══════════════════════════════════════
-    Budget: {budget}
-    Phases completed: 5/5
-    Files modified: {count}
-    Tests: ✓/✗
-    Documentation: ✓
-  ═══════════════════════════════════════
-  """
+Otherwise (no PR):
+
+<critical>
+IF {cleanup_mode} = true, YOU MUST run this command with the Bash tool — this is NOT optional:
+```bash
+rm -rf {output_dir}
+```
+</critical>
+
+Display final workflow summary:
+```
+═══════════════════════════════════════
+  FORGE COMPLETE: {task_description}
+═══════════════════════════════════════
+  Budget: {budget}
+  Phases completed: 5/5
+  Files modified: {count}
+  Tests: ✓/✗
+  Documentation: ✓
+═══════════════════════════════════════
 ```
