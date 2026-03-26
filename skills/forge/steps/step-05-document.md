@@ -174,18 +174,12 @@ If save_mode = true, run:
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "complete"
 ```
 
-If {pr_mode} = true: Load ./step-06-finish.md
+If {pr_mode} = true: Load ./step-06-finish.md and STOP.
 
-Otherwise (no PR):
+Otherwise (no PR), execute the following steps IN ORDER:
 
-<critical>
-IF {cleanup_mode} = true, YOU MUST run this command with the Bash tool — this is NOT optional:
-```bash
-rm -rf {output_dir}
-```
-</critical>
+**Step A — Display final summary:**
 
-Display final workflow summary:
 ```
 ═══════════════════════════════════════
   FORGE COMPLETE: {task_description}
@@ -197,3 +191,13 @@ Display final workflow summary:
   Documentation: ✓
 ═══════════════════════════════════════
 ```
+
+**Step B — Cleanup temporary files:**
+
+<critical>
+IF {cleanup_mode} = true, YOU MUST run this command with the Bash tool immediately after displaying the summary — this is NOT optional and MUST NOT be skipped:
+```bash
+rm -rf {output_dir}
+```
+This deletes the temporary forge inter-session files. It is the LAST action of the workflow.
+</critical>

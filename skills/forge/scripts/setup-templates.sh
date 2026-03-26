@@ -47,6 +47,19 @@ TEMPLATE_DIR="${SKILL_DIR}/templates"
 
 mkdir -p "$OUTPUT_DIR"
 
+# Add .claude/output/ to .gitignore if not already present
+GITIGNORE_FILE="${PROJECT_ROOT}/.gitignore"
+GITIGNORE_ENTRY=".claude/output/"
+if [[ -f "$GITIGNORE_FILE" ]]; then
+    if ! grep -qF "$GITIGNORE_ENTRY" "$GITIGNORE_FILE"; then
+        printf '\n# Forge — fichiers temporaires inter-sessions\n%s\n' "$GITIGNORE_ENTRY" >> "$GITIGNORE_FILE"
+        echo "✓ Added ${GITIGNORE_ENTRY} to .gitignore"
+    fi
+else
+    printf '# Forge — fichiers temporaires inter-sessions\n%s\n' "$GITIGNORE_ENTRY" > "$GITIGNORE_FILE"
+    echo "✓ Created .gitignore with ${GITIGNORE_ENTRY}"
+fi
+
 # Escape special characters for sed replacement strings
 escape_sed_replacement() {
     printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'

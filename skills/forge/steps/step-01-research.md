@@ -190,6 +190,13 @@ IF auto_mode = true:
      """
      Tu es dans le skill Forge, Phase 2 (Plan).
 
+     Variables critiques (déjà résolues — utilise ces valeurs directement) :
+     - task_id: {task_id}
+     - output_dir: {output_dir}
+     - skill_dir: {skill_dir}
+     - auto_mode: true
+     - cleanup_mode: {cleanup_mode}
+
      Contexte de la tâche :
      [Coller ici le contenu complet de {output_dir}/00-context.md]
 
