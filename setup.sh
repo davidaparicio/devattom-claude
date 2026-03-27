@@ -22,7 +22,31 @@ _sed_i \
 echo "   OK - identite Git configuree : $git_name <$git_email>"
 echo ""
 
-# 2. Installation des plugins
+# 2. Dépendances système pour la sandbox
+echo ">> Installation des dépendances système"
+
+MISSING_DEPS=()
+command -v rg &>/dev/null    || MISSING_DEPS+=("ripgrep")
+command -v bwrap &>/dev/null || MISSING_DEPS+=("bubblewrap")
+command -v socat &>/dev/null || MISSING_DEPS+=("socat")
+
+if [ ${#MISSING_DEPS[@]} -gt 0 ]; then
+  echo "   Installation via apt : ${MISSING_DEPS[*]}"
+  sudo apt-get install -y "${MISSING_DEPS[@]}"
+else
+  echo "   OK - ripgrep, bubblewrap, socat déjà présents"
+fi
+
+if ! npm list -g @anthropic-ai/sandbox-runtime &>/dev/null 2>&1; then
+  echo "   Installation de @anthropic-ai/sandbox-runtime..."
+  npm install -g @anthropic-ai/sandbox-runtime
+else
+  echo "   OK - @anthropic-ai/sandbox-runtime déjà installé"
+fi
+
+echo ""
+
+# 3. Installation des plugins
 echo ">> Installation des plugins Claude Code"
 
 if ! command -v claude &> /dev/null; then
