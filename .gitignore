@@ -53,3 +53,4 @@ credentials.json
 .credentials.json
 .git-broken
 **/.env
+.venv
