@@ -52,3 +52,4 @@ credentials.json
 *.pem
 .credentials.json
 .git-broken
+**/.env
