@@ -163,7 +163,5 @@
       ]
     }
   },
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
-  "model": "opus"
+  "alwaysThinkingEnabled": true
 }
