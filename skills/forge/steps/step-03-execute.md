@@ -1,7 +1,6 @@
 ---
 name: step-03-execute
-description: Plan execution with intelligent dispatch based on complexity and budget
-prev_step: ./step-02-plan.md
+description: Plan execution with complexity-based dispatch and systematic docstrings
 next_step: ./step-04-test.md
 ---
 
@@ -10,65 +9,29 @@ next_step: ./step-04-test.md
 ## RULES:
 
 - 🛑 NEVER deviate from the approved plan
-- 🛑 NEVER add features not in the plan (scope creep)
+- 🛑 NEVER add features not in the plan
 - 🛑 NEVER modify a file without reading it first
-- ✅ ALWAYS follow the plan file by file
-- ✅ ALWAYS read files BEFORE editing them
-- ✅ ALWAYS dispatch to the right sub-agent based on complexity
-- 📋 YOU ARE AN ORCHESTRATOR dispatching to sub-agents
-
-## MODEL ALLOCATION:
-
-<critical>
-Consult `budget-profiles.md` for dispatch based on `{budget}`:
-
-Each plan task is tagged [simple/moderate/complex].
-Dispatch depends on tag AND budget:
-
-**Budget `low`:**
-- simple → snipper sub-agent (model: sonnet, effort: low)
-- moderate → main context (Sonnet low)
-- complex → main context (Sonnet low)
-
-**Budget `mid`:**
-- simple → snipper sub-agent (model: sonnet, effort: low)
-- moderate → file-writer sub-agent (model: sonnet, effort: high)
-- complex → main context (Sonnet high effort)
-
-**Budget `high`:**
-- simple → snipper sub-agent (model: sonnet, effort: low)
-- moderate → file-writer sub-agent (model: opus, effort: medium)
-- complex → main context (Opus high effort)
-</critical>
-
-## CONTEXT RESTORATION:
-
-<critical>
-ALWAYS restore context when loaded by a sub-agent spawn (auto mode) OR via resume:
-1. Read `{output_dir}/00-context.md` → flags, task info, cleanup_mode
-2. Read `{output_dir}/02-plan.md` → the complete plan
-3. (If resume only) `git diff --name-only` to detect partial work → skip completed items
-</critical>
+- ✅ ALWAYS add docstrings/JSDoc to every function created or modified
+- ✅ ALWAYS dispatch to the right sub-agent based on complexity tag
+- 📋 YOU ARE AN ORCHESTRATOR
 
 ---
 
-## SEQUENCE:
+## EXECUTION SEQUENCE:
 
-### 1. Init Save (if save_mode)
+### 1. Init
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "03" "execute" "in_progress"
 ```
 
-### 2. Git Checkpoint (safety net)
+Read `{output_dir}/02-plan.md` to restore the plan.
 
-```bash
-git add -u && git commit --allow-empty -m "forge: checkpoint before execute ({task_id})"
-```
+If `{user_instruction}` is not empty: apply it as an additional constraint during execution.
 
-### 3. Create Todos from Plan
+### 2. Create Todos from Plan
 
-Convert each plan change into a todo with its complexity tag:
+Convert each file in the plan into a todo with its complexity tag:
 
 ```
 Plan entry:
@@ -77,96 +40,91 @@ Plan entry:
 - Handle expired token error
 
 Becomes:
-- [ ] [moderate] src/auth/handler.ts: Add validateToken
+- [ ] [moderate] src/auth/handler.ts: Add validateToken + docstring
 - [ ] [moderate] src/auth/handler.ts: Handle expired token error
 ```
 
-### 4. Execute File by File
+### 3. Execute File by File
 
-For each todo, dispatch based on complexity:
+Consult `budget-profiles.md` for dispatch based on `{budget}`.
 
-**4a. `[simple]` tasks → Snipper sub-agent**
+**3a. `[simple]` tasks → Snipper sub-agent**
 
-Launch an Agent with:
 ```
-model: sonnet
+model: sonnet, effort: low
 subagent_type: Snipper
 prompt: "Modify {file_path}:
-  - {exact change description}
+  - {exact change}
+  - Add JSDoc/docstring to every modified function
   - Follow pattern from {reference_file}:{line}
-  Do NOT add comments or extra features."
+  Do NOT add extra features or unrelated comments."
 ```
 
 Multiple independent simple tasks CAN be launched in parallel.
 
-**4b. `[moderate]` tasks → File-writer sub-agent OR main context**
+**3b. `[moderate]` tasks**
 
-In budget `mid`/`high`, launch an Agent with:
+Budget `mid`:
 ```
-model: sonnet (mid) or opus (high)
+model: sonnet, effort: high
 prompt: "Implement in {file_path}:
   - {detailed description}
-  - Patterns to follow: {patterns from research}
-  - Read file before modifying.
-  Do NOT add out-of-scope features."
+  - Add JSDoc/docstring to every created or modified function
+  - Patterns: {patterns from research}
+  - Read file before modifying."
 ```
 
-In budget `low`, execute directly in main context.
+Budget `high`: same but `model: opus, effort: medium`.
 
-**4c. `[complex]` tasks → Main context**
+**3c. `[complex]` tasks → Main context**
 
-Always execute in main context:
 1. Read the target file
 2. Understand existing structure
 3. Implement per plan
-4. Follow patterns documented in phase 1
+4. Add JSDoc/docstring to every created or modified function
+
+### 4. Docstring Standard
+
+Every function or method created or modified MUST receive:
+
+```typescript
+/**
+ * [One-line description of what it does]
+ * @param paramName - [description]
+ * @returns [description]
+ * @throws [ErrorType] when [condition] (if applicable)
+ */
+```
+
+For Python:
+```python
+def function(param: Type) -> ReturnType:
+    """One-line description.
+
+    Args:
+        param: Description.
+
+    Returns:
+        Description.
+
+    Raises:
+        ErrorType: When condition.
+    """
+```
 
 ### 5. Handle Blockers
 
-**If `{auto_mode}` = true:** make reasonable decision and continue
-**Otherwise:** use AskUserQuestion
+If an unexpected issue arises: make a reasonable decision, document it in the execution log, and continue.
 
-### 6. Quick Verification
+### 6. Save Output
 
 ```bash
-# Quick check — full lint/typecheck is in phase 4
-git diff --stat
+bash {skill_dir}/scripts/update-progress.sh "{task_id}" "03" "execute" "complete"
 ```
 
-### 7. Implementation Summary
+Append to `{output_dir}/03-execute.md`:
+- Files modified (with summaries)
+- New files created
+- Decisions made
 
-```
-**Implementation Complete**
-
-**Files modified:**
-- `src/auth/handler.ts` — added validateToken, error handling
-- `src/api/auth/route.ts` — integrated token validation
-
-**New files:**
-- `src/types/auth.ts` — type definitions
-
-**Todos:** {X}/{Y} completed
-**Sub-agents used:** {count} snipper, {count} file-writer
-```
-
-### 8. Save Output (if save_mode)
-
-Append to `{output_dir}/03-execute.md`.
-
----
-
-## NEXT STEP:
-
-<critical>
-NO session boundary here — execution chains directly to tests.
-</critical>
-
-```
-→ If {branch_mode} = true, commit:
-  git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 03 - execute"
-
-→ If save_mode = true:
-  bash {skill_dir}/scripts/update-progress.sh "{task_id}" "03" "execute" "complete"
-
-→ Load ./step-04-test.md directly
-```
+**Then immediately load ./step-04-test.md** — no validation between execute and test.
