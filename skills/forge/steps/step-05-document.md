@@ -1,203 +1,97 @@
 ---
 name: step-05-document
-description: Documentation — docstrings, update existing docs, markdown + Mermaid in high
-prev_step: ./step-04-test.md
-next_step: ./step-06-finish.md
+description: External documentation only — Mermaid diagrams, markdown files, README/CHANGELOG updates
 ---
 
 # Phase 5: Document
 
 ## RULES:
 
-- ✅ ALWAYS add docstrings/JSDoc to modified/created functions
-- ✅ ALWAYS update existing docs if relevant
-- ✅ In budget `high`: create dedicated markdown with Mermaid diagrams
-- 🛑 NEVER over-document — be concise and useful
-
-## MODEL ALLOCATION:
-
-<critical>
-Consult `budget-profiles.md`:
-- low: Haiku — basic docstrings only
-- mid: Sonnet low effort — docstrings + update existing docs
-- high: Sonnet medium effort — docstrings + dedicated markdown + Mermaid diagrams
-</critical>
-
-## CONTEXT RESTORATION (resume mode):
-
-<critical>
-If loaded via resume:
-1. Read `{output_dir}/00-context.md` → flags, budget
-2. Read `{output_dir}/03-execute.md` → what was implemented
-</critical>
+- ✅ ONLY generate external documentation (diagrams, markdown files, README, CHANGELOG)
+- 🛑 NEVER add docstrings — those were added during Execute (phase 3)
+- 🛑 NEVER document things unrelated to the implemented feature
+- ✅ Be concise — external docs should be useful to a reader, not exhaustive
 
 ---
 
-## SEQUENCE:
+## EXECUTION SEQUENCE:
 
-### 1. Init Save (if save_mode)
+### 1. Init
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "in_progress"
 ```
 
+Read `{output_dir}/03-execute.md` to know what was implemented.
+
+If `{user_instruction}` is not empty: apply it as focus or constraint.
+
 ### 2. Identify Documentation Targets
 
-From phase 3 (execute) results:
-- List functions/classes created or modified
-- Identify existing doc files (README, docs/, CHANGELOG)
-- Check if a doc file already relates to the feature
+From phase 3 results:
+- Is there an existing README section relevant to this feature? → update it
+- Does a CHANGELOG exist? → add an entry
+- Is this feature complex enough to warrant a dedicated doc file?
+- Are there architecture relationships worth diagramming?
 
-### 3. Docstrings / JSDoc (ALL budgets)
+### 3. Generate Documentation
 
-**Launch a doc-writer sub-agent** based on budget:
+Launch a doc-writer sub-agent based on budget:
 
-**Budget `low` (model: haiku):**
+**Budget `mid` (Sonnet, effort: low):**
 ```
-Add basic docstrings/JSDoc to the following functions:
-{list of created/modified functions with paths}
-Format: one-line description + @param + @returns
-Do NOT add inline comments.
-```
+Write external documentation for the following feature:
+{summary of what was implemented}
 
-**Budget `mid` (model: sonnet, effort: low):**
-```
-Add docstrings/JSDoc to the following functions:
-{list of functions with paths}
-Format: description + @param + @returns + @throws + @example if useful
-Do NOT add unnecessary inline comments.
+Produce:
+- Mermaid architecture or sequence diagram if the feature involves non-trivial data flow
+- Update README.md section: {relevant section} if applicable
+- Add CHANGELOG entry if file exists
+
+Be concise. Do not duplicate what is already in docstrings.
 ```
 
-**Budget `high` (model: sonnet, effort: medium):**
+**Budget `high` (Sonnet, effort: medium):**
 ```
-Add comprehensive docstrings/JSDoc to the following functions:
-{list of functions with paths}
-Format: description + @param + @returns + @throws + @example + @see
-Include relevant usage examples.
-```
+Write external documentation for the following feature:
+{summary of what was implemented}
 
-### 4. Update Existing Docs (mid and high)
-
-**If `{budget}` = `low`:** skip to step 6
-
-Check and update:
-- README.md: relevant section if the feature impacts the public API
-- CHANGELOG.md: add entry if the file exists
-- Existing docs: update sections affected by changes
-
-### 5. Dedicated Markdown + Mermaid (high only)
-
-**If `{budget}` != `high`:** skip to step 6
-
-Create a dedicated markdown file for the feature:
-
-```markdown
-# {feature_name}
-
-## Overview
-
-{2-3 sentence description}
-
-## Architecture
-
-```mermaid
-graph TD
-    A[Component A] --> B[Component B]
-    B --> C[Service C]
-    C --> D[(Database)]
+Produce:
+- A dedicated markdown file at docs/{feature_name}.md with:
+  - Overview (2-3 sentences)
+  - Architecture diagram (Mermaid)
+  - Data flow diagram (Mermaid sequence)
+  - API reference (public functions/endpoints)
+  - Configuration (env vars, options)
+- Update README.md relevant section
+- Add CHANGELOG entry if file exists
 ```
 
-## API
+### 4. Save and Finish
 
-### `functionName(param: Type): ReturnType`
-
-{Description, parameters, return, examples}
-
-## Data Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant A as API
-    participant S as Service
-    participant D as DB
-
-    U->>A: Request
-    A->>S: Process
-    S->>D: Persist
-    D-->>S: Result
-    S-->>A: Response
-    A-->>U: Return
-```
-
-## Configuration
-
-{Parameters, environment variables if applicable}
-
-## Testing
-
-{How to test, commands, coverage}
-```
-
-Place the file in the project's documentation folder (docs/, README section, or alongside the code).
-
-### 6. Documentation Summary
-
-```
-**Documentation Complete**
-
-**Docstrings added:** {count} functions
-**Docs updated:** {file list or "none"}
-**Markdown created:** {path or "no (budget != high)"}
-**Mermaid diagrams:** {count or "no"}
-```
-
-### 7. Save Output (if save_mode)
-
-Append to `{output_dir}/05-document.md`.
-
----
-
-## NEXT STEP:
-
-<critical>
-NO session boundary — chain to finish or terminate.
-</critical>
-
-If {branch_mode} = true, run:
-```bash
-git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 05 - document"
-```
-
-If save_mode = true, run:
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "05" "document" "complete"
 ```
 
-If {pr_mode} = true: Load ./step-06-finish.md and STOP.
+Append to `{output_dir}/05-document.md`.
 
-Otherwise (no PR), execute the following steps IN ORDER:
-
-**Step A — Display final summary:**
+Display final summary:
 
 ```
 ═══════════════════════════════════════
   FORGE COMPLETE: {task_description}
 ═══════════════════════════════════════
   Budget: {budget}
+  Advisor uses remaining: {advisor_uses_remaining}
   Phases completed: 5/5
   Files modified: {count}
   Tests: ✓/✗
-  Documentation: ✓
+  Docs: {files created/updated}
 ═══════════════════════════════════════
 ```
 
-**Step B — Cleanup temporary files:**
+Clean up output folder:
 
-<critical>
-IF {cleanup_mode} = true, YOU MUST run this command with the Bash tool immediately after displaying the summary — this is NOT optional and MUST NOT be skipped:
 ```bash
 rm -rf {output_dir}
 ```
-This deletes the temporary forge inter-session files. It is the LAST action of the workflow.
-</critical>
