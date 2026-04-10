@@ -1,7 +1,6 @@
 ---
 name: step-04-test
-description: Testing — linting, typecheck, unit tests, Playwright integration tests
-prev_step: ./step-03-execute.md
+description: Run tests via project forge.json config — regression check, new tests, re-run
 next_step: ./step-05-document.md
 ---
 
@@ -9,191 +8,153 @@ next_step: ./step-05-document.md
 
 ## RULES:
 
-- ✅ ALWAYS run linting + typecheck (regardless of flags)
-- ✅ Unit tests IF `-t` or `-a` enabled
-- ✅ Playwright tests IF `-play` enabled
-- ✅ Retry loop based on budget
-- 🛑 NEVER ignore lint/typecheck errors
-
-## MODEL ALLOCATION:
-
-<critical>
-Consult `budget-profiles.md`:
-- Runner (linting/typecheck/tests): always Haiku (test-runner sub-agent)
-- Error analysis: Sonnet (mid) or Opus (high)
-- Max retries: low=1, mid=3, high=5
-</critical>
-
-## CONTEXT RESTORATION (resume mode):
-
-<critical>
-If loaded via resume:
-1. Read `{output_dir}/00-context.md` → flags
-2. Read `{output_dir}/03-execute.md` → what was implemented
-</critical>
+- ✅ ALWAYS run existing tests first (regression check)
+- ✅ ALWAYS write new tests for modified/created functions
+- ✅ ALWAYS re-run tests after writing new ones
+- ✅ Lint/typecheck is handled by project PostToolUse hooks — do NOT run it manually
+- 🛑 NEVER skip the regression check
 
 ---
 
-## SEQUENCE:
+## EXECUTION SEQUENCE:
 
-### 1. Init Save (if save_mode)
+### 1. Init
 
 ```bash
 bash {skill_dir}/scripts/update-progress.sh "{task_id}" "04" "test" "in_progress"
 ```
 
-### 2. Linting and Typecheck (ALWAYS)
+Read `{output_dir}/03-execute.md` to know which files were modified.
 
-Launch a test-runner sub-agent (model: haiku):
+### 2. Read Test Command
 
-```
-Run these commands and return ONLY errors:
-1. Detect package manager (look for pnpm-lock.yaml, yarn.lock, bun.lockb, package-lock.json)
-2. Run linting: {pm} run lint 2>&1 || true
-3. Run typecheck: {pm} run typecheck 2>&1 || true
-4. Parse output and return ONLY structured errors:
-   - File, line, error message
-   - Total error count
-If everything passes: return "✓ 0 errors"
+```bash
+cat .claude/forge.json 2>/dev/null || echo "{}"
 ```
 
-**If errors found:** → go to step 4 (fix loop)
+Extract the `test` key. If the file does not exist or the key is absent:
 
-**If all passes:** → continue to step 3 (unit tests)
-
-### 3. Unit Tests (if test_mode or auto_mode)
-
-**If `{test_mode}` = false AND `{auto_mode}` = false:** skip to step 5
-
-**3a. Check existing tests**
-
-Launch a sub-agent (model: haiku, subagent_type: Explore):
 ```
-Find test files related to the modified files:
-{list of files modified in phase 3}
-Return: existing test paths, framework used, patterns.
+⚠ No test command configured.
+  Create .claude/forge.json with: { "test": "<your test command>" }
+  Skipping test phase.
 ```
 
-**3b. Create missing tests**
+Then skip to step 6.
 
-Launch a sub-agent (model: sonnet):
+### 3. Regression Check — Run Existing Tests
+
+Run the test command from forge.json:
+
+```bash
+{test_command} 2>&1
 ```
-Create tests for modified/created functions:
-{summary of phase 3 changes}
-Follow existing test patterns: {patterns found in 3a}
+
+Parse output: tests passed / failed / errors.
+
+**If tests fail:**
+→ Go to the fix loop (step 5).
+
+**If tests pass:**
+→ Continue to step 4.
+
+### 4. Write New Tests
+
+Launch a sub-agent (Sonnet) to write tests for functions created or modified in phase 3:
+
+```
+Write tests for the following functions:
+{list of created/modified functions with file paths and signatures}
+
+Follow existing test patterns found in: {test patterns from research}
 Framework: {detected framework}
+Cover: happy path, edge cases, error cases.
 ```
 
-**3c. Run tests**
+### 5. Re-run Tests After Writing New Ones
 
-Launch a test-runner sub-agent (model: haiku):
-```
-Run tests: {pm} run test 2>&1 || true
-Parse output and return:
-- Tests passed / failed / skipped
-- For each failure: file, test name, error
-If all pass: return "✓ All tests pass"
+```bash
+{test_command} 2>&1
 ```
 
-### 4. Fix Loop (if errors)
+Parse output.
 
-<critical>
-Max retries based on budget:
-- low: 1 retry
-- mid: 3 retries
-- high: 5 retries
-</critical>
+**If tests fail:** → Fix loop.
+
+**If tests pass:** → Continue to step 6.
+
+### Fix Loop
+
+Max retries: `mid` = 3, `high` = 5.
 
 For each retry:
 
-**4a. Analyze errors**
-
-Launch an error-analyzer sub-agent (model: sonnet):
+**a. Analyze errors** — launch error-analyzer sub-agent (Sonnet):
 ```
-Analyze these errors and propose targeted fixes:
-{structured errors from test-runner}
+Analyze these test failures and propose targeted fixes:
+{structured errors}
 
 Return for each error:
 - File and line
 - Probable cause
-- Proposed fix (exact diff)
+- Exact fix (diff format)
 ```
 
-**4b. Apply fixes**
+**b. Apply fixes** via Edit/Write.
 
-Apply proposed fixes via Edit/Write.
+**c. Re-run** `{test_command}`.
 
-**4c. Re-run tests**
-
-Relaunch test-runner. If errors → retry.
 If still failing after max retries:
-
 ```
 ⚠ Tests failed after {max} attempts.
-Remaining errors:
+Remaining failures:
 {error list}
 ```
+Continue and document the failures.
 
-**If `{auto_mode}` = true:** continue despite errors (document them)
-**Otherwise:** ask user via AskUserQuestion
+### 6. Save and Validate
 
-### 5. Playwright Integration Tests (if playwright_mode)
-
-**If `{playwright_mode}` = false:** skip to step 6
-
-<critical>
-Playwright tests use the MCP Playwright.
-Verify MCP availability before continuing.
-</critical>
-
-**5a. Identify scenarios to test**
-
-From the plan (phase 2), extract integration scenarios:
-- Main user journey
-- Critical edge cases
-
-**5b. Write and run Playwright tests**
-
-Use MCP Playwright tools to:
-1. Navigate to relevant pages
-2. Interact with elements
-3. Verify expected results
-4. Capture screenshots on failure
-
-**5c. Playwright fix loop**
-
-Same logic as step 4 — retry based on budget.
-
-### 6. Test Summary
-
-```
-**Tests Complete**
-
-**Linting:** ✓ / ✗ ({count} errors)
-**Typecheck:** ✓ / ✗ ({count} errors)
-**Unit tests:** ✓ / ✗ ({passed}/{total})
-**Playwright:** ✓ / ✗ / skipped
-**Retries used:** {count}/{max}
+```bash
+bash {skill_dir}/scripts/update-progress.sh "{task_id}" "04" "test" "complete"
 ```
 
-### 7. Save Output (if save_mode)
+Append to `{output_dir}/04-test.md`:
+- Test command used
+- Regression results
+- New tests written
+- Final results
 
-Append to `{output_dir}/04-test.md`.
-
----
-
-## NEXT STEP:
-
-<critical>
-NO session boundary — chain directly to documentation.
-</critical>
+Display validation prompt:
 
 ```
-→ If {branch_mode} = true, commit:
-  git add -u && git diff --cached --quiet || git commit -m "forge({task_id}): phase 04 - test"
+✓ Test phase complete
+  → File: {output_dir}/04-test.md
 
-→ If save_mode = true:
-  bash {skill_dir}/scripts/update-progress.sh "{task_id}" "04" "test" "complete"
+Review and edit the file if needed.
+[Enter]                   Continue to next phase
+[Instruction + Enter]     Add an instruction for the next phase
+```
 
-→ Load ./step-05-document.md directly
+Store any user instruction in `{user_instruction}`.
+
+**STOP and wait for user input.**
+
+Then:
+- If `{doc_mode}` = true → load `./step-05-document.md`
+- If `{doc_mode}` = false → display final summary and clean up:
+
+```
+═══════════════════════════════════════
+  FORGE COMPLETE: {task_description}
+═══════════════════════════════════════
+  Budget: {budget}
+  Advisor uses remaining: {advisor_uses_remaining}
+  Phases completed: 4/4
+  Files modified: {count}
+  Tests: ✓/✗
+═══════════════════════════════════════
+```
+
+```bash
+rm -rf {output_dir}
 ```
