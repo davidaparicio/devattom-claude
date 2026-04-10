@@ -1,24 +1,17 @@
 #!/bin/bash
 # Forge — Initialize output structure from templates
 #
-# Usage: setup-templates.sh "task-id" "description" "auto" "save" "test" "playwright" "team" "branch" "pr" "interactive" "budget" "branch_name" "original_input" "reference_file"
+# Usage: setup-templates.sh "task-id" "description" "budget" "team_mode" "doc_mode" "original_input" "reference_file"
 
 set -e
 
 INPUT_NAME="$1"
 TASK_DESCRIPTION="$2"
-AUTO_MODE="${3:-false}"
-SAVE_MODE="${4:-false}"
-TEST_MODE="${5:-false}"
-PLAYWRIGHT_MODE="${6:-false}"
-TEAM_MODE="${7:-false}"
-BRANCH_MODE="${8:-false}"
-PR_MODE="${9:-false}"
-INTERACTIVE_MODE="${10:-false}"
-BUDGET="${11:-mid}"
-BRANCH_NAME="${12:-}"
-ORIGINAL_INPUT="${13:-}"
-REFERENCE_FILE="${14:-}"
+BUDGET="${3:-mid}"
+TEAM_MODE="${4:-false}"
+DOC_MODE="${5:-false}"
+ORIGINAL_INPUT="${6:-}"
+REFERENCE_FILE="${7:-}"
 
 if [[ -z "$INPUT_NAME" ]] || [[ -z "$TASK_DESCRIPTION" ]]; then
     echo "Error: task-id and description required" >&2
@@ -52,11 +45,11 @@ GITIGNORE_FILE="${PROJECT_ROOT}/.gitignore"
 GITIGNORE_ENTRY=".claude/output/"
 if [[ -f "$GITIGNORE_FILE" ]]; then
     if ! grep -qF "$GITIGNORE_ENTRY" "$GITIGNORE_FILE"; then
-        printf '\n# Forge — fichiers temporaires inter-sessions\n%s\n' "$GITIGNORE_ENTRY" >> "$GITIGNORE_FILE"
+        printf '\n# Forge — temporary output files\n%s\n' "$GITIGNORE_ENTRY" >> "$GITIGNORE_FILE"
         echo "✓ Added ${GITIGNORE_ENTRY} to .gitignore"
     fi
 else
-    printf '# Forge — fichiers temporaires inter-sessions\n%s\n' "$GITIGNORE_ENTRY" > "$GITIGNORE_FILE"
+    printf '# Forge — temporary output files\n%s\n' "$GITIGNORE_ENTRY" > "$GITIGNORE_FILE"
     echo "✓ Created .gitignore with ${GITIGNORE_ENTRY}"
 fi
 
@@ -65,66 +58,50 @@ escape_sed_replacement() {
     printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
 
-# Determine conditional statuses
-test_status="⏭ Skip"
-[[ "$TEST_MODE" == "true" ]] && test_status="⏸ Pending"
+# Advisor uses by budget
+ADVISOR_USES="2"
+[[ "$BUDGET" == "high" ]] && ADVISOR_USES="4"
 
-playwright_status="⏭ Skip"
-[[ "$PLAYWRIGHT_MODE" == "true" ]] && playwright_status="⏸ Pending"
-
-pr_status="⏭ Skip"
-[[ "$PR_MODE" == "true" ]] && pr_status="⏸ Pending"
+# Doc phase status
+DOC_STATUS="⏭ Skip"
+[[ "$DOC_MODE" == "true" ]] && DOC_STATUS="⏸ Pending"
 
 # Build reference docs content
-reference_docs_content="_No reference documents provided._"
+REFERENCE_DOCS_CONTENT="_No reference documents provided._"
 if [[ -n "$REFERENCE_FILE" ]]; then
-    reference_docs_content="**MUST READ before planning/execution:** \`${REFERENCE_FILE}\`"
+    REFERENCE_DOCS_CONTENT="**MUST READ before planning/execution:** \`${REFERENCE_FILE}\`"
 fi
 
 render_template() {
     local template_file="$1"
     local output_file="$2"
 
-    local safe_task_desc safe_original_input safe_branch_name safe_reference_docs
+    local safe_task_desc safe_original_input safe_reference_docs
     safe_task_desc=$(escape_sed_replacement "$TASK_DESCRIPTION")
     safe_original_input=$(escape_sed_replacement "$ORIGINAL_INPUT")
-    safe_branch_name=$(escape_sed_replacement "$BRANCH_NAME")
-    safe_reference_docs=$(escape_sed_replacement "$reference_docs_content")
+    safe_reference_docs=$(escape_sed_replacement "$REFERENCE_DOCS_CONTENT")
 
     sed -e "s|{{task_id}}|${TASK_ID}|g" \
         -e "s|{{task_description}}|${safe_task_desc}|g" \
         -e "s|{{timestamp}}|${TIMESTAMP}|g" \
-        -e "s|{{auto_mode}}|${AUTO_MODE}|g" \
-        -e "s|{{save_mode}}|${SAVE_MODE}|g" \
-        -e "s|{{test_mode}}|${TEST_MODE}|g" \
-        -e "s|{{playwright_mode}}|${PLAYWRIGHT_MODE}|g" \
-        -e "s|{{team_mode}}|${TEAM_MODE}|g" \
-        -e "s|{{branch_mode}}|${BRANCH_MODE}|g" \
-        -e "s|{{pr_mode}}|${PR_MODE}|g" \
-        -e "s|{{interactive_mode}}|${INTERACTIVE_MODE}|g" \
         -e "s|{{budget}}|${BUDGET}|g" \
-        -e "s|{{branch_name}}|${safe_branch_name}|g" \
+        -e "s|{{team_mode}}|${TEAM_MODE}|g" \
+        -e "s|{{doc_mode}}|${DOC_MODE}|g" \
+        -e "s|{{advisor_uses_remaining}}|${ADVISOR_USES}|g" \
         -e "s|{{feature_name}}|${FEATURE_NAME}|g" \
         -e "s|{{original_input}}|${safe_original_input}|g" \
-        -e "s|{{test_status}}|${test_status}|g" \
-        -e "s|{{playwright_status}}|${playwright_status}|g" \
-        -e "s|{{pr_status}}|${pr_status}|g" \
+        -e "s|{{doc_status}}|${DOC_STATUS}|g" \
         -e "s|{{reference_docs}}|${safe_reference_docs}|g" \
         "$template_file" > "$output_file"
 }
 
-# Always create base files
+# Create all output files
 render_template "${TEMPLATE_DIR}/00-context.md" "${OUTPUT_DIR}/00-context.md"
 render_template "${TEMPLATE_DIR}/01-research.md" "${OUTPUT_DIR}/01-research.md"
 render_template "${TEMPLATE_DIR}/02-plan.md" "${OUTPUT_DIR}/02-plan.md"
 render_template "${TEMPLATE_DIR}/03-execute.md" "${OUTPUT_DIR}/03-execute.md"
 render_template "${TEMPLATE_DIR}/04-test.md" "${OUTPUT_DIR}/04-test.md"
 render_template "${TEMPLATE_DIR}/05-document.md" "${OUTPUT_DIR}/05-document.md"
-
-# Conditional
-if [[ "$PR_MODE" == "true" ]]; then
-    render_template "${TEMPLATE_DIR}/06-finish.md" "${OUTPUT_DIR}/06-finish.md"
-fi
 
 echo "TASK_ID=${TASK_ID}"
 echo "OUTPUT_DIR=${OUTPUT_DIR}"
