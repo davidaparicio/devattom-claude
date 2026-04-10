@@ -1,65 +1,56 @@
 # Forge — Budget Profiles
 
-Reference for model/effort allocation per budget level.
-
-## Profile `low` — Simple tasks (small fix, rename)
-
-| Phase | Model | Effort | Agents |
-|-------|-------|--------|--------|
-| Research | Haiku | - | 1 solo agent |
-| Plan | Haiku | low | - |
-| Execute | Sonnet | low | snipper only |
-| Test | Haiku | - | run + parse |
-| Document | Haiku | - | basic docstrings |
-
-**Max retries:** 1
-**Research parallelism:** no
-
 ## Profile `mid` (default) — Standard features
 
-| Phase | Model | Effort | Agents |
-|-------|-------|--------|--------|
-| Research | Haiku | - | 2-3 parallel agents |
-| Plan | Sonnet | medium | - |
-| Execute | Sonnet | high | snipper + file-writer |
-| Test | Haiku run + Sonnet analysis | medium | - |
-| Document | Sonnet | low | docstrings + update existing docs |
-
-**Max retries:** 3
-**Research parallelism:** yes (if `-w`)
+| Phase | Model | Notes |
+|-------|-------|-------|
+| Research | Sonnet | Glob/Grep scan, then Opus advisor scopes what to explore |
+| Plan | Sonnet | Opus advisor consulted on architecture decisions |
+| Opus advisor total | Opus | **max 2 uses** shared across research + plan |
+| Execute `simple` | Sonnet low | Snipper sub-agent |
+| Execute `moderate` | Sonnet high | Sub-agent or main context |
+| Execute `complex` | Sonnet high | Main context |
+| Test error-analyzer | Sonnet | Max 3 retries |
+| Document | Sonnet low | External docs only (if --doc) |
 
 ## Profile `high` — Complex and critical features
 
-| Phase | Model | Effort | Agents |
-|-------|-------|--------|--------|
-| Research | Sonnet | - | 3-5 parallel agents + ultra think |
-| Plan | Opus | medium | - |
-| Execute | Opus | high | all available sub-agents |
-| Test | Haiku run + Opus analysis | high | - |
-| Document | Sonnet | medium | docstrings + markdown + Mermaid diagrams |
+| Phase | Model | Notes |
+|-------|-------|-------|
+| Research | Sonnet | Glob/Grep scan, then Opus advisor scopes what to explore |
+| Plan | Sonnet | Opus advisor consulted on architecture decisions |
+| Opus advisor total | Opus | **max 4 uses** shared across research + plan |
+| Execute `simple` | Sonnet low | Snipper sub-agent |
+| Execute `moderate` | Opus medium | Sub-agent |
+| Execute `complex` | Opus high | Main context |
+| Test error-analyzer | Sonnet | Max 5 retries |
+| Document | Sonnet medium | External docs only (if --doc) |
 
-**Max retries:** 5
-**Research parallelism:** yes (if `-w`)
+## Advisor Tool
 
-## Available Sub-Agents
+The advisor tool uses the Anthropic beta header `advisor-tool-2026-03-01`.
 
-| Agent | Model | Role | Phases |
-|-------|-------|------|--------|
-| `explorer-codebase` | Haiku | Find files, return paths + signatures | Research |
-| `explorer-docs` | Haiku | Search docs, return condensed summary | Research |
-| `summarizer` | Haiku | Condense files into structured summaries | Research |
-| `snipper` | Sonnet (low) | Simple modifications (rename, imports) | Execute |
-| `file-writer` | Sonnet (medium-high) | Create files from spec | Execute |
-| `test-runner` | Haiku | Run commands, parse errors | Test |
-| `error-analyzer` | Sonnet | Diagnose errors, propose targeted fixes | Test |
-| `doc-writer` | Sonnet | Write documentation from brief | Document |
+Tool configuration in API requests:
 
-## Execution Dispatch by Task Complexity
+```json
+{
+  "type": "advisor_20260301",
+  "name": "advisor",
+  "model": "claude-opus-4-6",
+  "max_uses": 2
+}
+```
 
-Each plan task is tagged with a complexity that determines the sub-agent:
+Set `max_uses` to 2 for `mid`, 4 for `high`. The budget is shared across both research and plan phases — track remaining uses in `{advisor_uses_remaining}`.
 
-| Complexity tag | `low` | `mid` | `high` |
-|----------------|-------|-------|--------|
-| `simple` | snipper (Sonnet low) | snipper (Sonnet low) | snipper (Sonnet low) |
-| `moderate` | Sonnet low | Sonnet high | Opus medium |
-| `complex` | Sonnet low | Sonnet high | Opus high |
+Opus advisor is used at exactly two decision points:
+1. **End of research scan** — Sonnet submits findings, Opus defines exact scope and decides if find-docs or web search is needed
+2. **During planning** — when Sonnet encounters a non-trivial architectural choice
+
+## Complexity Dispatch Table
+
+| Tag | `mid` | `high` |
+|-----|-------|--------|
+| `simple` | Snipper (Sonnet low) | Snipper (Sonnet low) |
+| `moderate` | Sonnet high | Opus medium |
+| `complex` | Sonnet high | Opus high |
