@@ -117,10 +117,9 @@ Display validation prompt:
   → File: {output_dir}/02-plan.md
 
 Review and edit the file if needed.
-[Enter]                   Continue to Execute
-[Instruction + Enter]     Add an instruction for the Execute phase
+Type "continue" to proceed to Execute, or type an instruction to add context for the Execute phase.
 ```
 
-Store any user instruction in `{user_instruction}`.
+Store any user instruction in `{user_instruction}` (empty if user typed "continue").
 
 **STOP and wait for user input. Then load ./step-03-execute.md.**

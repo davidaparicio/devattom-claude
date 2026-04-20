@@ -164,5 +164,6 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "advisorModel": "opus"
+  "advisorModel": "opus",
+  "effortLevel": "high"
 }

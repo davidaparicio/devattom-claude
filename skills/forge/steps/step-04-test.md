@@ -131,11 +131,10 @@ Display validation prompt:
   → File: {output_dir}/04-test.md
 
 Review and edit the file if needed.
-[Enter]                   Continue to next phase
-[Instruction + Enter]     Add an instruction for the next phase
+Type "continue" to proceed to the next phase, or type an instruction to add context for the next phase.
 ```
 
-Store any user instruction in `{user_instruction}`.
+Store any user instruction in `{user_instruction}` (empty if user typed "continue").
 
 **STOP and wait for user input.**
 

@@ -109,8 +109,7 @@ Init → Research → [validate] → Plan → [validate] → Execute → Test �
   → File: .claude/output/forge/{task-id}/0X-phase.md
 
 Review and edit the file if needed.
-[Enter]                   Continue to Phase [X+1]
-[Instruction + Enter]     Add an instruction for the next phase
+Type "continue" to proceed to Phase [X+1], or type an instruction to add context for the next phase.
 ```
 
 Execute chains directly into Test — no validation between them.

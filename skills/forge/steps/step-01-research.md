@@ -141,10 +141,9 @@ Display validation prompt:
   → File: {output_dir}/01-research.md
 
 Review and edit the file if needed.
-[Enter]                   Continue to Plan
-[Instruction + Enter]     Add an instruction for the Plan phase
+Type "continue" to proceed to Plan, or type an instruction to add context for the Plan phase.
 ```
 
-Store any user instruction in `{user_instruction}`.
+Store any user instruction in `{user_instruction}` (empty if user typed "continue").
 
 **STOP and wait for user input. Then load ./step-02-plan.md.**
